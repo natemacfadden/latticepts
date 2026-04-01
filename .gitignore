@@ -78,3 +78,6 @@ build/
 
 # C build artifacts
 test_box_enum
+
+# benchmark outputs
+*.png
