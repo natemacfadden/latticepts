@@ -1,0 +1,32 @@
+[build-system]
+requires = [
+    "setuptools>=64",
+    "cython",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "conevecs"
+version = "0.0.1"
+description = "A software package for enumerating lattice points in convex cones"
+authors = [{ name = "Nate MacFadden for the Liam McAllister Group" }]
+readme = "README.md"
+license = {text = "GPL-3.0-or-later"}
+dependencies = [
+    "numpy",
+]
+requires-python = ">=3.9"
+
+[project.optional-dependencies]
+test = [
+  "pytest",
+  "pytest-benchmark",
+  "ortools",
+  "PyNormaliz",
+]
+
+[project.urls]
+Repository = "https://github.com/natmacfadden/conevecs"
+
+[tool.setuptools]
+packages = ["conevecs"]
