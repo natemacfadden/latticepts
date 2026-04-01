@@ -1,0 +1,1 @@
+Enumerates lattice points $\\{x\in\mathbb{Z}^{\text{dim}}: Hx>\text{rhs}\\}$ using [Kannan's algorithm](https://doi.org/10.1287/moor.12.3.415). See [this webpage](https://cseweb.ucsd.edu/~daniele/Lattice/Enum.html) for some links.
