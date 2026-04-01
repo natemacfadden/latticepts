@@ -1,5 +1,5 @@
-#ifndef CONEVECS_KERNEL_H
-#define CONEVECS_KERNEL_H
+#ifndef BOX_ENUM_H
+#define BOX_ENUM_H
 
 // HEADER
 // ======
@@ -35,7 +35,7 @@ A status code according to following list:
     -5: no vectors
     -2: exceed max_N_out outputs
 */
-int _conevecs_kernel_c(
+int _box_enum_c(
     int32_t * restrict out,
     int * restrict N_out,
     int dim,
@@ -50,9 +50,9 @@ int _conevecs_kernel_c(
 
 // IMPLEMENTATION
 // ==============
-#ifdef CONEVECS_KERNEL_IMPLEMENTATION
+#ifdef BOX_ENUM_IMPLEMENTATION
 
-#include "conevecs_kernel.h"
+#include "box_enum.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -136,7 +136,7 @@ static inline int set_bounds(
 }
 
 // custom Kannan code for p-vector generation
-int _conevecs_kernel_c(
+int _box_enum_c(
     int32_t * restrict out,
     int * restrict N_out,
     int dim,
@@ -338,6 +338,6 @@ int _conevecs_kernel_c(
         return status;
 }
 
-#endif // CONEVECS_KERNEL_IMPL
+#endif // BOX_ENUM_IMPLEMENTATION
 
-#endif // CONEVECS_KERNEL_H
+#endif // BOX_ENUM_H

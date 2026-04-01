@@ -1,5 +1,5 @@
-# conevecs_kernel.pyx
-# Cython wrapper for conevecs_kernel
+# box_enum.pyx
+# Cython wrapper for box_enum
 
 # import C types
 # --------------
@@ -10,8 +10,8 @@ import numpy as np
 
 # declare the external C function
 # -------------------------------
-cdef extern from "conevecs_kernel.h":
-    int _conevecs_kernel_c(
+cdef extern from "box_enum.h":
+    int _box_enum_c(
         int32_t * out,
         int * N_out,
         int dim,
@@ -25,7 +25,7 @@ cdef extern from "conevecs_kernel.h":
 
 # Python-exposed wrapper
 # ----------------------
-def conevecs_kernel(B: int,
+def box_enum(B: int,
                 int[:, ::1] linmat,
                 int linmin,
                 long max_N_out,
@@ -89,7 +89,7 @@ def conevecs_kernel(B: int,
         max_N_iter = 1000*max_N_out
 
     # call the C function
-    status = _conevecs_kernel_c(
+    status = _box_enum_c(
         c_out,
         &N_out,
         dim,
