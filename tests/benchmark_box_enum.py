@@ -123,7 +123,7 @@ def primitive_filter(pts):
 
 
 def run_normaliz(B):
-    ineqs = [list(map(int, row)) + [-1] for row in H]
+    ineqs = [list(map(int, row)) + [-rhs] for row in H]
     for i in range(dim):
         row_p = [0]*dim + [B]; row_p[i] =  1; ineqs.append(row_p)
         row_m = [0]*dim + [B]; row_m[i] = -1; ineqs.append(row_m)

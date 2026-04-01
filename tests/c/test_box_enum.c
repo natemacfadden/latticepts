@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
     double eval_time = (double)(t_end - t_start) / CLOCKS_PER_SEC;
 
     if (rc != 0) {
-        fprintf(stderr, "enumerate_box_c failed (%d)\n", rc);
+        fprintf(stderr, "_box_enum_c failed (%d)\n", rc);
     } else {
         printf("Generated %ld vectors in %fs\n", N_out, eval_time);
     }
