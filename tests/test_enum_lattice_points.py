@@ -115,5 +115,5 @@ def test_enum_N_pts(min_N_pts, rhs_val):
 
     assert len(pts) >= min_N_pts, \
         f"rhs={rhs_val}, min_N_pts={min_N_pts}: got {len(pts)} points"
-    assert np.all(H @ pts.T >= rhs_val), \
+    assert np.all(H.astype(np.int64) @ pts.T.astype(np.int64) >= rhs_val), \
         f"rhs={rhs_val}, min_N_pts={min_N_pts}: some points violate H @ x >= {rhs_val}"

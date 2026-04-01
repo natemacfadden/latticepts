@@ -69,7 +69,7 @@ int _box_enum_c(
 #include <stdlib.h>
 #include <string.h>
 
-//#define DEBUG
+// #define DEBUG  // uncomment to enable debug logging
 #ifdef DEBUG
     #define DEBUG_LOG(...) fprintf(stderr, __VA_ARGS__)
 #else

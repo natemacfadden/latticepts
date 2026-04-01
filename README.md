@@ -10,6 +10,33 @@ $$ \\{x\in\mathbb{Z}^{\text{dim}}: Hx\geq\text{rhs} \text{ and } |x|_\infty \leq
 
 A helper method is provided in case the user wants $N$ points but doesn't care about box size. In this case, boxes of increasing sizes are studied until $\geq N$ lattice points are found.
 
+## Usage
+
+The primary interface is `enum_lattice_points`, which handles box sizing automatically:
+
+```python
+import numpy as np
+from conevecs import enum_lattice_points
+
+H   = np.array([[1, 2], [3, -1]], dtype=np.int32)
+rhs = 1
+
+# Find at least 1000 lattice points in {H @ x >= rhs}
+pts = enum_lattice_points(H=H, rhs=rhs, min_N_pts=1000)
+
+# Optionally restrict to primitive vectors (GCD = 1)
+pts = enum_lattice_points(H=H, rhs=rhs, min_N_pts=1000, primitive=True)
+```
+
+For direct control over the box size, `box_enum` enumerates all lattice points in $\\{Hx \geq \text{rhs},\\ |x|_\infty \leq B\\}$:
+
+```python
+from conevecs import box_enum
+
+pts, status = box_enum(B=5, H=H, rhs=rhs, max_N_out=10_000)
+# status: 0 = success, -1 = dim>256, -2 = hit max_N_out, -3 = hit max_N_iter
+```
+
 ## Organization
 
 ```

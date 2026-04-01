@@ -28,7 +28,7 @@ def box_enum(B: int,
                 int[:, ::1] H,
                 int rhs,
                 long max_N_out,
-                long max_N_iter = -1):
+                long max_N_iter = -1) -> tuple[np.ndarray, int]:
     """
     Enumerate lattice points ``vec`` obeying ``H @ vec >= rhs`` and
     ``|vec_i| <= B`` using Kannan's algorithm.

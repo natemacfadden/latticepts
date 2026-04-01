@@ -129,8 +129,7 @@ print("-" * 35)
 skip = None
 
 for N in N_VALUES:
-    n_str   = _fmt_N(N)
-    out_str = _fmt_N(N) if skip is not None else None
+    n_str = _fmt_N(N)
 
     if skip is not None:
         print(f"{n_str:>5}  {'TO':>6}  {_skip_fmt(skip)}")

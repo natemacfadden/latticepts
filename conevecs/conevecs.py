@@ -35,6 +35,7 @@ def enum_lattice_points(
     rhs: int,
     min_N_pts: int,
     primitive: bool = False,
+    max_B: int = 10_000,
     verbosity: int = 0) -> np.ndarray:
     """
     Generate (optionally primitive) lattice points in
@@ -51,13 +52,17 @@ def enum_lattice_points(
         Minimum number of lattice points to return.
     primitive : bool, optional
         If True, only return vectors with GCD(x) = 1. Defaults to False.
+    max_B : int, optional
+        Maximum box size to search. If reached without finding min_N_pts
+        points, returns however many were found. Defaults to 10_000.
     verbosity : int, optional
         The verbosity level. Higher is more verbose. Defaults to 0.
 
     Returns
     -------
     pts : ndarray of shape (N, dim)
-        Lattice points satisfying H @ x >= rhs, where N >= `min_N_pts`.
+        Lattice points satisfying H @ x >= rhs, where N >= `min_N_pts`
+        unless max_B was reached.
     """
     if min_N_pts <= 0:
         raise ValueError(f"min_N_pts must be > 0, got {min_N_pts}.")
@@ -66,6 +71,8 @@ def enum_lattice_points(
     # set both to a large number
     max_N_out  = max(10_000, 10*min_N_pts)
     max_N_iter = max(1_000_000, 1_000_000*min_N_pts)
+
+    H = np.asarray(H, dtype=np.int32)
 
     # get the lattice points
     Bs_fit   = []
@@ -83,7 +90,7 @@ def enum_lattice_points(
         # the actual work
         pts, status = box_enum(
             B=B,
-            H=H.astype(np.int32),
+            H=H,
             rhs=rhs,
             max_N_out=max_N_out,
             max_N_iter=max_N_iter
@@ -103,6 +110,10 @@ def enum_lattice_points(
 
         # check if done
         if N >= min_N_pts:
+            break
+        if B >= max_B:
+            if verbosity >= 1:
+                print(f"Reached max_B={max_B} with {N} points. Stopping.")
             break
         if verbosity >= 1:
             print(f"Attempt #{i}: found {N} lattice pts. Compare to ", end=" ")
@@ -135,11 +146,15 @@ def enum_lattice_points(
                 Bstep = Bguess - B
             Bstep = int(np.ceil(Bstep))
             if Bstep <= 0:
-                raise ValueError
-
-            B += Bstep
+                B += min(3, int(np.ceil(0.05*B)))
+            else:
+                B += Bstep
         else:
             # be very conservative with B if we have few points
             B += min(3, int(np.ceil(0.05*B)))
 
+    if len(pts) < min_N_pts:
+        warnings.warn(
+            f"returning {len(pts)} points, fewer than min_N_pts={min_N_pts}"
+        )
     return pts
