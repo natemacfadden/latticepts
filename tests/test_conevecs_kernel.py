@@ -17,7 +17,7 @@
 
 import numpy as np
 
-from convecs import conevec_kernel
+from convecs import conevecs_kernel
 from pfvs.util import kannan_box_mat_njit
 
 # =============================================================================
@@ -125,7 +125,7 @@ def test_njit():
 
 def test_c():
     for dilation, expected in zip(DILATIONS, EXPECTATIONS):
-        out, status = conevec_kernel(
+        out, status = conevecs_kernel(
             B=dilation,
             linmat=H,
             linmin=1,
@@ -139,16 +139,16 @@ def test_c():
 # Benchmarks
 # =============================================================================
 
-def test_bench_conevec_kernel_njit(benchmark):
+def test_bench_conevecs_kernel_njit(benchmark):
     benchmark(
         kannan_box_mat_njit,
         B=10, linmat=H, linmin=1,
         max_N_out=MAX_N_OUT, max_N_iter=MAX_N_ITER,
     )
 
-def test_bench_conevec_kernel_c(benchmark):
+def test_bench_conevecs_kernel_c(benchmark):
     benchmark(
-        conevec_kernel,
+        conevecs_kernel,
         B=10, linmat=H, linmin=1,
         max_N_out=MAX_N_OUT, max_N_iter=MAX_N_ITER,
     )

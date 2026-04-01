@@ -1,5 +1,5 @@
-# conevec_kernel.pyx
-# Cython wrapper for conevec_kernel
+# conevecs_kernel.pyx
+# Cython wrapper for conevecs_kernel
 
 # import C types
 # --------------
@@ -10,8 +10,8 @@ import numpy as np
 
 # declare the external C function
 # -------------------------------
-cdef extern from "conevec_kernel.h":
-    int _conevec_kernel_c(
+cdef extern from "conevecs_kernel.h":
+    int _conevecs_kernel_c(
         int32_t * out,
         int * N_out,
         int dim,
@@ -25,7 +25,7 @@ cdef extern from "conevec_kernel.h":
 
 # Python-exposed wrapper
 # ----------------------
-def conevec_kernel(B: int,
+def conevecs_kernel(B: int,
                 int[:, ::1] linmat,
                 int linmin,
                 long max_N_out,
@@ -89,7 +89,7 @@ def conevec_kernel(B: int,
         max_N_iter = 1000*max_N_out
 
     # call the C function
-    status = _conevec_kernel_c(
+    status = _conevecs_kernel_c(
         c_out,
         &N_out,
         dim,

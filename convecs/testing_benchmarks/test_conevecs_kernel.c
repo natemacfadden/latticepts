@@ -4,8 +4,8 @@
 #include <errno.h>
 #include <time.h>
 
-#define CONEVEC_KERNEL_IMPLEMENTATION
-#include "conevec_kernel.h"
+#define CONEVECS_KERNEL_IMPLEMENTATION
+#include "conevecs_kernel.h"
 
 int main(int argc, char *argv[])
 {
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
     int N_out = 0;
 
     clock_t start = clock();
-    int rc = _conevec_kernel_c(
+    int rc = _conevecs_kernel_c(
         out,
         &N_out,
         dim,
