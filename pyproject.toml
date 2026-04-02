@@ -15,7 +15,6 @@ readme = "README.md"
 license = "GPL-3.0-or-later"
 keywords = ["lattice", "enumeration", "convex cone", "Kannan", "geometry of numbers"]
 classifiers = [
-    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Programming Language :: Python :: 3",
     "Programming Language :: Cython",
     "Programming Language :: C",
