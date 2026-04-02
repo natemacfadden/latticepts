@@ -19,6 +19,7 @@ import numpy as np
 import pytest
 
 from conevecs import box_enum
+from conftest import _sort_rows, _run_normaliz, _run_cpsat
 
 # the following imports are only needed for testing
 try:
@@ -196,7 +197,7 @@ EXPECTATIONS = {
 }
 
 MAX_N_OUT  = 10_000_000_000
-MAX_N_ITER = 1_000_000_000_000
+MAX_N_NODES = 1_000_000_000_000
 
 # =============================================================================
 # Tests
@@ -206,8 +207,8 @@ MAX_N_ITER = 1_000_000_000_000
 @pytest.mark.parametrize("rhs_val", RHS_VALUES)
 def test_counts(name, rhs_val):
     c = TEST_CASES[name]
-    out, status = box_enum(B=c["B"], H=c["H"], rhs=rhs_val,
-                           max_N_out=MAX_N_OUT, max_N_iter=MAX_N_ITER)
+    out, status, _ = box_enum(B=c["B"], H=c["H"], rhs=rhs_val,
+                           max_N_out=MAX_N_OUT, max_N_nodes=MAX_N_NODES)
     assert status == 0
     expected = EXPECTATIONS[name][rhs_val]
     assert out.shape[0] == expected, \
@@ -220,8 +221,8 @@ def test_counts(name, rhs_val):
 def test_vs_normaliz(name, rhs_val):
     c = TEST_CASES[name]
     B = min(c["B"], COMPARISON_B)
-    out_kan, status = box_enum(B=B, H=c["H"], rhs=rhs_val,
-                               max_N_out=MAX_N_OUT, max_N_iter=MAX_N_ITER)
+    out_kan, status, _ = box_enum(B=B, H=c["H"], rhs=rhs_val,
+                               max_N_out=MAX_N_OUT, max_N_nodes=MAX_N_NODES)
     assert status == 0
     out_norm = _run_normaliz(c["H"], B, rhs_val)
     assert out_kan.shape[0] == out_norm.shape[0], \
@@ -238,8 +239,8 @@ def test_vs_normaliz(name, rhs_val):
 def test_vs_cpsat(name, rhs_val):
     c = TEST_CASES[name]
     B = min(c["B"], COMPARISON_B)
-    out_kan, status = box_enum(B=B, H=c["H"], rhs=rhs_val,
-                               max_N_out=MAX_N_OUT, max_N_iter=MAX_N_ITER)
+    out_kan, status, _ = box_enum(B=B, H=c["H"], rhs=rhs_val,
+                               max_N_out=MAX_N_OUT, max_N_nodes=MAX_N_NODES)
     assert status == 0
     out_cp = _run_cpsat(c["H"], B, rhs_val)
     assert out_kan.shape[0] == out_cp.shape[0], \

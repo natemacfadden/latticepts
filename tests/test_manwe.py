@@ -19,6 +19,7 @@ import numpy as np
 import pytest
 
 from conevecs import box_enum
+from conftest import _sort_rows, _run_normaliz, _run_cpsat
 
 # the following imports are only needed for testing
 try:
@@ -117,7 +118,7 @@ H = np.array([
 dim = H.shape[1]
 
 MAX_N_OUT  = 10_000_000_000
-MAX_N_ITER = 1_000_000_000_000
+MAX_N_NODES = 1_000_000_000_000
 
 DILATIONS      = list(range(1, 11))
 RHS_VALUES     = [-1, 0, 1, 2]
@@ -141,8 +142,8 @@ EXPECTATIONS = {
 @pytest.mark.parametrize("rhs_val", list(EXPECTATIONS.keys()))
 def test_manwe_counts(rhs_val):
     for B, expected in zip(DILATIONS, EXPECTATIONS[rhs_val]):
-        out, status = box_enum(B=B, H=H, rhs=rhs_val, max_N_out=MAX_N_OUT,
-                               max_N_iter=MAX_N_ITER)
+        out, status, _ = box_enum(B=B, H=H, rhs=rhs_val, max_N_out=MAX_N_OUT,
+                               max_N_nodes=MAX_N_NODES)
 
         assert status == 0
         assert out.shape[0] == expected, \
@@ -152,8 +153,8 @@ def test_manwe_counts(rhs_val):
 @pytest.mark.parametrize("rhs_val", RHS_VALUES)
 @pytest.mark.skipif(not HAS_NORMALIZ, reason="PyNormaliz not installed")
 def test_manwe_vs_normaliz(rhs_val):
-    out_kan, status = box_enum(B=COMPARISON_B, H=H, rhs=rhs_val,
-                               max_N_out=MAX_N_OUT, max_N_iter=MAX_N_ITER)
+    out_kan, status, _ = box_enum(B=COMPARISON_B, H=H, rhs=rhs_val,
+                               max_N_out=MAX_N_OUT, max_N_nodes=MAX_N_NODES)
     assert status == 0
 
     out_norm = _run_normaliz(H, COMPARISON_B, rhs_val)
@@ -169,8 +170,8 @@ def test_manwe_vs_normaliz(rhs_val):
 @pytest.mark.parametrize("rhs_val", RHS_VALUES)
 @pytest.mark.skipif(not HAS_CPSAT, reason="ortools not installed")
 def test_manwe_vs_cpsat(rhs_val):
-    out_kan, status = box_enum(B=COMPARISON_B, H=H, rhs=rhs_val,
-                               max_N_out=MAX_N_OUT, max_N_iter=MAX_N_ITER)
+    out_kan, status, _ = box_enum(B=COMPARISON_B, H=H, rhs=rhs_val,
+                               max_N_out=MAX_N_OUT, max_N_nodes=MAX_N_NODES)
     assert status == 0
 
     out_cp = _run_cpsat(H, COMPARISON_B, rhs_val)
@@ -189,4 +190,4 @@ def test_manwe_vs_cpsat(rhs_val):
 
 def test_bench_box_enum(benchmark):
     benchmark(box_enum, B=10, H=H, rhs=1,
-              max_N_out=MAX_N_OUT, max_N_iter=MAX_N_ITER)
+              max_N_out=MAX_N_OUT, max_N_nodes=MAX_N_NODES)

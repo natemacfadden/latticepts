@@ -117,8 +117,8 @@ H = np.array([
 dim = H.shape[1]
 rhs = 1
 
-MAX_N_OUT  = 10_000_000_000
-MAX_N_ITER = 1_000_000_000_000
+MAX_N_OUT   = 10_000_000_000
+MAX_N_NODES = 1_000_000_000_000
 
 # =============================================================================
 # Reference implementations
@@ -200,8 +200,8 @@ if not HAS_NORMALIZ or not HAS_CPSAT:
     missing = [name for name, flag in [("PyNormaliz", HAS_NORMALIZ), ("ortools", HAS_CPSAT)] if not flag]
     print(f"NI: {', '.join(missing)} not installed")
 
-print(f"{'B':>3}  {'N':>8}  {'box_enum':>11}  {'normaliz':>11}  {'cpsat':>11}")
-print("-" * 52)
+print(f"{'B':>3}  {'N':>8}  {'cone_wid':>9}  {'expl_frac':>9}  {'effic':>9}  {'box_enum':>11}  {'normaliz':>11}  {'cpsat':>11}")
+print("-" * 85)
 
 skip_box      = None
 skip_normaliz = "NI" if not HAS_NORMALIZ else None
@@ -213,15 +213,27 @@ for B in range(1, 30+1):
 
     if skip_box is None:
         t0 = time.perf_counter()
-        out, status = box_enum(B=B, H=H, rhs=rhs, max_N_out=MAX_N_OUT, max_N_iter=MAX_N_ITER)
+        out, status, N_nodes_seen = box_enum(B=B, H=H, rhs=rhs, max_N_out=MAX_N_OUT, max_N_nodes=MAX_N_NODES)
         elapsed = time.perf_counter() - t0
+        N = out.shape[0]
+        N_nodes_B = ((2*B + 1)**(dim + 1) - 1) // (2*B)
+        cone_width = N / (2*B + 1)**dim
+        exploration_fraction = N_nodes_seen / N_nodes_B
+        N_nodes_dense = sum(N**(k/dim) for k in range(dim + 1)) if N > 0 else 0.0
+        efficiency = N_nodes_dense / N_nodes_seen if N_nodes_seen > 0 else 0.0
         t_box = _fmt(elapsed)
-        n_str = f"{out.shape[0]:>8}"
+        n_str  = f"{N:>8}"
+        cw_str = f"{cone_width:>9.2e}"
+        fd_str = f"{exploration_fraction:>9.2e}"
+        ef_str = f"{efficiency:>9.2e}"
         if elapsed > TIMEOUT:
             skip_box = "TO"
     else:
         t_box = _skip_fmt(skip_box)
-        n_str = f"{'TO':>8}"
+        n_str  = f"{'TO':>8}"
+        cw_str = f"{'':>9}"
+        fd_str = f"{'':>9}"
+        ef_str = f"{'':>9}"
 
     if skip_normaliz is None:
         t0 = time.perf_counter()
@@ -243,4 +255,4 @@ for B in range(1, 30+1):
     else:
         t_cpsat = _skip_fmt(skip_cpsat)
 
-    print(f"{B:>3}  {n_str}  {t_box}  {t_normaliz}  {t_cpsat}")
+    print(f"{B:>3}  {n_str}  {cw_str}  {fd_str}  {ef_str}  {t_box}  {t_normaliz}  {t_cpsat}")
