@@ -5,7 +5,7 @@
 
 Efficient lattice point enumeration for convex polyhedra, via a C/Cython implementation of Kannan's algorithm. Originally built for string compactification calculations where it outperforms PyNormaliz and OR-Tools CP-SAT.
 
-**Convex  cones:** runtime vs requested number of lattice points (geometry 'Manwe', h11=491, 7D, https://arxiv.org/abs/2406.13751):
+**Convex  cones:** runtime vs requested number of interior lattice points (geometry 'Manwe', h11=491, 7D, https://arxiv.org/abs/2406.13751):
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/natemacfadden/latticepts/main/docs/benchmark_box_enum.png" alt="Runtime vs N on the Manwe example: latticepts outperforms PyNormaliz and OR-Tools CP-SAT"/>
