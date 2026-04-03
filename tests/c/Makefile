@@ -1,5 +1,5 @@
 CFLAGS = -O3 -march=native -flto -mtune=native -funroll-loops
-IFLAGS = -I../../conevecs
+IFLAGS = -I../../latticepts
 
 .PHONY: all clean
 
