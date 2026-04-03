@@ -61,8 +61,8 @@ __pycache__/
 *.pyd
 
 # Cython build artifacts
-conevecs/*.c
-conevecs/*.cpp
+latticepts/*.c
+latticepts/*.cpp
 
 # Distribution / packaging
 *.egg-info/
