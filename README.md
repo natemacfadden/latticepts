@@ -17,7 +17,7 @@ Efficient lattice point enumeration for convex polyhedra, via a C/Cython impleme
   <img src="https://raw.githubusercontent.com/natemacfadden/latticepts/main/docs/benchmark_h11.png" alt="Runtime vs h11 for 4D reflexive polytopes"/>
 </p>
 
-**Runtime vs dimension** (length-2 hypercube, dim = 2..14):
+**More polytopes** runtime vs dimension of length-2 hypercubes (dim = 2..14):
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/natemacfadden/latticepts/main/docs/benchmark_dim.png" alt="Runtime vs dimension for the length-2 hypercube"/>
