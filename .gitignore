@@ -1,83 +1,31 @@
-# Prerequisites
-*.d
-
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
-
-# Linker output
-*.ilk
-*.map
-*.exp
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
-
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
-
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
-
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
-
-# debug information files
-*.dwo
-
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-
-# Cython build artifacts
-latticepts/*.c
-latticepts/*.cpp
-
-# Distribution / packaging
-*.egg-info/
-dist/
-build/
-*.egg
-
 # macOS
 .DS_Store
 
-# Jupyter
-.ipynb_checkpoints/
-
-# C build artifacts
-test_box_enum
-
 # benchmark outputs
 *.png
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+
+# C extensions and build artifacts
+*.d
+*.o
+*.a
+*.so
+*.so.*
+*.dylib
+*.dSYM/
+test_box_enum
+
+# Cython-generated C files
+latticepts/box_enum.c
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Jupyter
+.ipynb_checkpoints/
