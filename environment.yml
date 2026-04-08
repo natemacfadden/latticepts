@@ -1,0 +1,12 @@
+name: latticepts
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.9
+  - numpy
+  - cython
+  - setuptools>=64
+  - pip
+  - pip:
+      - -e .[test]
