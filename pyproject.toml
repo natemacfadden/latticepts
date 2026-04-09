@@ -40,3 +40,6 @@ Repository = "https://github.com/natemacfadden/latticepts"
 
 [tool.setuptools]
 packages = ["latticepts"]
+
+[tool.setuptools.package-data]
+latticepts = ["*.pyx", "*.pxd", "*.h", "*.c"]

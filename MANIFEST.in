@@ -1,0 +1,1 @@
+recursive-include latticepts *.pyx *.pxd *.h *.c
