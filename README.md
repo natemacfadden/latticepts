@@ -29,7 +29,7 @@ for $H\in\mathbb{Z}^{N_\text{hyps}\times\text{dim}}$ and $\text{rhs}\in\mathbb{Z
 
 ## Limitations
 
-- Maximum dimension: 256 (returns an error if `dim > 256`). For convex cones, `latticepts` excels at low-dimensions. It can become sluggish in comparison to alternatives at higher-dimensions
+- Maximum dimension: 256 (returns an error if `dim > 256`). For convex cones, `latticepts` excels at low-dimensions. It can become sluggish in comparison to alternatives at higher-dimensions (well before 256)
 - Windows is not supported: the C kernel uses C99 variable-length arrays, which MSVC does not support
 
 ## Installation
