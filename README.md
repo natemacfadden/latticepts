@@ -3,7 +3,7 @@
 
 [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.19406651.svg)](https://doi.org/10.5281/zenodo.19406651)
 
-Fast lattice point enumeration for convex polyhedra. A C/Cython implementation of Kannan's algorithm, significantly beating Normaliz and OR-Tools CP-SAT in speed. As one performance example: `latticepts` generates ~107M lattice points in the strict interior of an example 7D cone (['Manwe'](https://arxiv.org/abs/2406.13751)) in ~23s. See [the benchmarks](##Benchmarks) for benchmarking plots.
+Fast lattice point enumeration for convex polyhedra. A C/Cython implementation of Kannan's algorithm, significantly beating Normaliz and OR-Tools CP-SAT in speed. As one performance example: `latticepts` generates ~107M lattice points in the strict interior of an example 7D cone (['Manwe'](https://arxiv.org/abs/2406.13751)) in ~23s. See [the benchmarks](#benchmarks) for benchmarking plots.
 
 ## Citation
 
