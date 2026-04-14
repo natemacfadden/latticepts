@@ -3,7 +3,7 @@
 
 [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.19406651.svg)](https://doi.org/10.5281/zenodo.19406651)
 
-Fast lattice point enumeration for convex polyhedra. A C/Cython implementation of Kannan's algorithm, significantly beating Normaliz and OR-Tools CP-SAT in speed for certain problems. As one performance example: `latticepts` generates ~107M lattice points in the strict interior of an example 7D cone (['Manwe'](https://arxiv.org/abs/2406.13751)) in ~23s. See [the benchmarks](#benchmarks) for benchmarking plots.
+Fast lattice point enumeration for convex polyhedra. A C/Cython implementation of Kannan's algorithm, significantly outperforming Normaliz and OR-Tools CP-SAT in speed for certain problems. As one performance example: `latticepts` generates ~107M lattice points in the strict interior of an example 7D cone (['Manwe'](https://arxiv.org/abs/2406.13751)) in ~23s. See [the benchmarks](#benchmarks) for benchmarking plots.
 
 ## Citation
 
@@ -42,7 +42,7 @@ Requires a C compiler and Cython. NumPy must be installed first.
 
 ## Algorithm Notes
 
-This repo contains a Cython wrapper of a C implementation of [Kannan's algorithm](https://doi.org/10.1287/moor.12.3.415). See [this webpage](https://cseweb.ucsd.edu/~daniele/Lattice/Enum.html) for some other relevant work (not by me). The specific implementation in this repo is for latttice point enumeration in square boxes $|x_i|\leq B$ for $B\geq 1$. I.e.,
+This repo contains a Cython wrapper of a C implementation of [Kannan's algorithm](https://doi.org/10.1287/moor.12.3.415). See [this webpage](https://cseweb.ucsd.edu/~daniele/Lattice/Enum.html) for some other relevant work (not by me). The specific implementation in this repo is for lattice point enumeration in square boxes $|x_i|\leq B$ for $B\geq 1$. I.e.,
 
 $$ \\{x\in\mathbb{Z}^{\text{dim}}: Hx\geq\text{rhs} \text{ and } |x|_\infty \leq B\\}. $$
 
@@ -97,7 +97,7 @@ pts, status, N_nodes = box_enum(B=5, H=H, rhs=rhs, max_N_out=10_000)
 # (statuses are also explained in the docstring)
 ```
 
-`box_enum` is well suited to lattice point enumeration in polytopes (assuming an H-representation is known). For example, if one knows a bounding box of the polytope (if you have a V-representation, this is trivial: $B = \max|v_i|$ over all vertices), then the lattice point enumeration can be done as follows. This example is of the $h^{1,1}=491$ 4D reflexive polytope:
+`box_enum` is well suited to lattice point enumeration in polytopes (assuming an H-representation is known). For example, if one knows a bounding box of the polytope (if you have a V-representation, this is trivial: $B = \max|v_i|$ over all vertices), then the lattice point enumeration can be done as follows. Here's an example of the $h^{1,1}=491$ 4D reflexive polytope:
 
 ```python
 import numpy as np
