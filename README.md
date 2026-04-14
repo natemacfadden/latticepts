@@ -52,7 +52,7 @@ A helper method is provided in case the user wants $N$ points but doesn't care a
 
 ## Benchmarks
 
-**Convex cones:** runtime vs requested number of interior (not on boundary of the cone) lattice points in a cone. The cone studied is the 7D 'Manwe' from https://arxiv.org/abs/2406.13751:
+**Convex cones:** runtime vs requested number of interior lattice points in a cone (i.e., not on the boundary). The cone studied is the 7D 'Manwe' from https://arxiv.org/abs/2406.13751:
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/natemacfadden/latticepts/main/docs/benchmark_box_enum.png" alt="Runtime vs N on the Manwe example: latticepts outperforms PyNormaliz and OR-Tools CP-SAT"/>
