@@ -58,7 +58,7 @@ A helper method is provided in case the user wants $N$ points but doesn't care a
   <img src="https://raw.githubusercontent.com/natemacfadden/latticepts/main/docs/benchmark_box_enum.png" alt="Runtime vs N on the Manwe example: latticepts outperforms PyNormaliz and OR-Tools CP-SAT"/>
 </p>
 
-**Polytopes:** runtime vs size of 4D reflexive polytope (measured by h11, one polytope per h11 value, h11 = 6..491):
+**Polytopes:** runtime to enumerate all contained lattice points for various 4D reflexive polytopes. Size of the polytope is measured by h11 with one polytope per h11 value, h11 = 6..491:
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/natemacfadden/latticepts/main/docs/benchmark_h11.png" alt="Runtime vs h11 for 4D reflexive polytopes"/>
