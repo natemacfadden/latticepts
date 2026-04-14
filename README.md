@@ -64,7 +64,7 @@ A helper method is provided in case the user wants $N$ points but doesn't care a
   <img src="https://raw.githubusercontent.com/natemacfadden/latticepts/main/docs/benchmark_h11.png" alt="Runtime vs h11 for 4D reflexive polytopes"/>
 </p>
 
-**More polytopes:** runtime vs dimension of length-2 hypercubes (dim = 2..14; x-axis is $3^{\text{dim}}$):
+**More polytopes:** runtime vs dimension of length-2 hypercubes $[0,2]^{dim}$ for dim = 2..14:
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/natemacfadden/latticepts/main/docs/benchmark_dim.png" alt="Runtime vs dimension for the length-2 hypercube"/>
