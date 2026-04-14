@@ -72,7 +72,7 @@ A helper method is provided in case the user wants $N$ points but doesn't care a
 
 ## Usage
 
-The primary interface is `enum_lattice_points`, which handles box sizing automatically. This was designed for the purpose of enumerating lattice points in convex cones, which are unbounded. See the following example of how ro use this to get lattice points in the strict (since $rhs=1$) interior of a convex cone:
+There are two primary interfaces. For unbounded polyhedra (e.g., cones), the focus is on efficiently generating a finite collection of lattice points. This can be done via `enum_lattice_points` which enumerates all lattice points in polyhedron with components bounded by $|x_i|\leq B$ for an increasingly sized $B$ until a user-requested number of points is found. See the following example of how to use this to get lattice points in the strict (since $rhs=1$) interior of a convex cone:
 
 ```python
 import numpy as np
