@@ -78,6 +78,7 @@ There are two primary interfaces. For unbounded polyhedra (e.g., cones), the foc
 import numpy as np
 from latticepts import enum_lattice_points
 
+# seek lattice points x obeying H@x >= rhs
 H   = np.array([[1, 2], [3, -1]], dtype=np.int32)
 rhs = 1
 
