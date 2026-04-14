@@ -46,9 +46,9 @@ This repo contains a Cython wrapper of a C implementation of [Kannan's algorithm
 
 $$ \\{x\in\mathbb{Z}^{\text{dim}}: Hx\geq\text{rhs} \text{ and } |x|_\infty \leq B\\}. $$
 
-It is a [short algorithm](https://github.com/natemacfadden/latticepts/blob/main/latticepts/box_enum.h), only $\leq 350$ lines - I encourage you to read it. If Python is easier to follow, [`docs/kannan_reference.py`](https://github.com/natemacfadden/latticepts/blob/main/docs/kannan_reference.py) is a pedagogical `numba.njit` port of the same algorithm — strictly less capable than `box_enum` (scalar `rhs` only, so cones and stretched cones but not general polyhedra), not used at runtime.
+It is a [short algorithm](https://github.com/natemacfadden/latticepts/blob/main/latticepts/box_enum.h), only $\leq 350$ lines - I encourage you to read it. If Python is easier to follow, [`docs/kannan_reference.py`](https://github.com/natemacfadden/latticepts/blob/main/docs/kannan_reference.py) is a pedagogical `numba.njit` port of the same algorithm. The Python port is efficient but has less options than `box_enum` (scalar `rhs` only, so cones and stretched cones but not general polyhedra) and is not used at runtime.
 
-A helper method is provided in case the user wants $N$ points but doesn't care about box size. In this case, boxes of increasing sizes are studied until $\geq N$ lattice points are found.
+A helper method to `box_enum` is provided in case the user wants $N$ points but doesn't care about box size. One such task here is for enumerating some lattice points in convex cones. In this case, boxes of increasing sizes $B$ are studied until $\geq N$ lattice points are found.
 
 ## Benchmarks
 
