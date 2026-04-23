@@ -101,7 +101,7 @@ pts, status, N_nodes = box_enum(B=5, H=H, rhs=rhs, max_N_out=10_000)
 
 ```python
 import numpy as np
-from latticepts import box_enum
+from latticepts.box_enum import box_enum
 
 H   = np.array([[ 1,   0,   0,   0],
                 [-15,  8,   6,   1],
