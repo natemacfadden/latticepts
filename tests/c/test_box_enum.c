@@ -115,15 +115,20 @@ int main(int argc, char *argv[])
 
     // do the enumeration
     long N_out = 0;
+    long N_nodes = 0;
+
+    int rhs[N_hyps];
+    for (int j = 0; j < N_hyps; j++) rhs[j] = 1;   // hardcode H @ x >= 1
 
     clock_t t_start = clock();
     int rc = _box_enum_c(
         out,
         &N_out,
+        &N_nodes,
         dim,
         B,
         H,
-        1,
+        rhs,
         N_hyps,
         max_N_out,
         max_N_iter);
