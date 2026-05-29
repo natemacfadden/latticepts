@@ -216,6 +216,7 @@ int _box_enum_c(
     // define variables
     // ----------------
     int status = 0;
+    *N_nodes = 1;  // the root counts even when the search dies before the loop
 
     // define arrays
     int32_t vec[dim];
@@ -269,7 +270,6 @@ int _box_enum_c(
     int i;
     int pos;
 
-    *N_nodes = 1;  // count the root
     while (sp >= 0) {
 
         // read from the stack
