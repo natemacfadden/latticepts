@@ -1,0 +1,25 @@
+# environment for running the benchmarks/ scripts (latticepts vs Normaliz,
+# OR-Tools CP-SAT, CYTools). The core package only needs environment.yml.
+# Note: pynormaliz must come from conda-forge (not pip) -- it links the
+# Normaliz C++ library.
+name: latticepts-bench
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.10
+  - numpy
+  - cython
+  - setuptools>=64
+  - matplotlib
+  - normaliz
+  - pynormaliz
+  - python-flint
+  - pplpy
+  - gmpy2
+  - pip
+  - pip:
+      - ortools
+      - cytools
+      - pytest
+      - pytest-benchmark
+      - -e .
