@@ -126,7 +126,7 @@ latticepts/
 |   └── latticepts.py                    # the enum_lattice_points wrapper for box_enum
 ├── tests/
 │   ├── conftest.py                      # shared test helpers (pytest)
-│   ├── test_box_enum.py                 # tests of box_enum tests
+│   ├── test_box_enum.py                 # tests of box_enum
 │   ├── test_manwe.py                    # tests relating to 'Manwe' (arXiv:2406.13751)
 │   ├── test_enum_lattice_points.py      # tests of enum_lattice_points
 |   └── c/                               # simple C-kernel tests (no Python interface)
