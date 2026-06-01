@@ -291,6 +291,7 @@ int _box_enum_c(
                 for (int t = 0; t < dim; t++) {
                     int32_t a = vec[t] < 0 ? -vec[t] : vec[t];
                     while (a) { int32_t r = g % a; g = a; a = r; }
+                    if (g == 1) break;   // gcd can only stay 1 from here; stop early
                 }
                 if (g != 1) { sp--; continue; }   // not primitive: skip (don't count/emit)
             }
