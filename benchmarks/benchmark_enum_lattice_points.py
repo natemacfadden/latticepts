@@ -136,7 +136,8 @@ for N in N_VALUES:
         continue
 
     t0 = time.perf_counter()
-    pts = enum_lattice_points(H=H, rhs=rhs, min_N_pts=N)
+    # explicit buffer -> fast single-pass path (skips the count-only dry run)
+    pts = enum_lattice_points(H=H, rhs=rhs, min_N_pts=N, max_N_out=max(10_000, 4*N))
     elapsed = time.perf_counter() - t0
 
     print(f"{n_str:>5}  {_fmt_N(len(pts)):>6}  {_fmt(elapsed)}")
