@@ -19,9 +19,12 @@
 # Description:  Reference njit implementation of Kannan's algorithm. For
 #               learning only - read alongside latticepts/box_enum.h.
 #
-# Note:         numba requires numpy <= 2.3. If your environment has a newer
-#               numpy, this file will not import. numba is not a dependency
-#               of latticepts itself.
+# Note:         Requires numba, which is not a dependency of latticepts
+#               itself (this file is for learning only and is not shipped
+#               in the wheel). Install it with
+#               `pip install -e ".[reference]"`. numba pins its own
+#               compatible numpy range, so no manual numpy version is
+#               needed.
 # -----------------------------------------------------------------------------
 
 # external imports
