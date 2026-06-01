@@ -126,7 +126,7 @@ def enum_lattice_points(
             max_N_out=max_N_out,
             max_N_nodes=max_N_nodes,
             count_only=count_only,
-            primitive=(count_only and primitive),
+            primitive=primitive,
         )
         pts = None if count_only else _res
         if verbosity >= 1:
@@ -149,13 +149,11 @@ def enum_lattice_points(
                 f"(= floor(N_nodes_dense / min_efficiency), N_nodes = N_iterations + 1)"
             )
 
-        # remove points with nontrivial GCDs
+        # count_only returns just the tally; otherwise keep the largest
+        # point set found across the B iterations
         if count_only:
-            N = _res   # primitive filter already applied in-kernel
+            N = _res
         else:
-            if primitive and (len(pts) > 0):
-                gcds = np.gcd.reduce(pts, axis=1)
-                pts  = pts[gcds == 1]
             N = len(pts)
             if N > len(best_pts):
                 best_pts = pts
@@ -208,7 +206,7 @@ def enum_lattice_points(
             B += min(3, int(np.ceil(0.05*B)))
 
     if count_only:
-        # dry run: return the box B reached (the L-inf frontier) and the count N
+        # dry run: return the box B reached and the count N
         return B, N
     if len(best_pts) < min_N_pts:
         msg = f"returning {len(best_pts)} points, fewer than min_N_pts={min_N_pts}"
@@ -218,7 +216,7 @@ def enum_lattice_points(
     return best_pts
 
 
-def min_B_for(H, rhs, min_N_pts, primitive=True, max_B=10_000, verbosity=0):
+def min_B_for(H, rhs, min_N_pts, primitive, max_B=10_000, verbosity=0):
     """
     Dry run: determine the smallest box size B such that enum_lattice_points
     generates min_N_pts lattice points.
