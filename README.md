@@ -38,7 +38,7 @@ for $H\in\mathbb{Z}^{N_\text{hyps}\times\text{dim}}$ and $\text{rhs}\in\mathbb{Z
 pip install -e .
 ```
 
-Requires a C compiler and Cython. NumPy must be installed first.
+Requires a C compiler.
 
 ## Algorithm Notes
 
