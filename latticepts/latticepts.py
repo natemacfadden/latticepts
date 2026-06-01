@@ -38,7 +38,8 @@ def enum_lattice_points(
     max_B: int = 10_000,
     min_efficiency: float = 1e-6,
     count_only: bool = False,
-    verbosity: int = 0) -> np.ndarray:
+    verbosity: int = 0,
+    max_N_out: "int | None" = None) -> np.ndarray:
     """
     Generate (optionally primitive) lattice points in
         {x in Z^dim : H @ x >= rhs}
@@ -68,6 +69,12 @@ def enum_lattice_points(
         The verbosity level. >= 1 prints per-iteration diagnostics
         (fill_fraction, exploration_fraction, efficiency). >= 2 also prints
         attempt-level progress messages. Defaults to 0 (silent).
+    max_N_out : int or None, optional
+        Output buffer size. If None, the buffer is sized exactly to the number
+        of points in the final box (done by first just counting the number of
+        points, then materializing them at the end). If, in contrast, an int is
+        given, that value is used as the buffer for every trial box (faster, but
+        dangerous with memory).
 
     Returns
     -------
@@ -78,7 +85,10 @@ def enum_lattice_points(
     if min_N_pts <= 0:
         raise ValueError(f"min_N_pts must be > 0, got {min_N_pts}.")
 
-    max_N_out = min_N_pts if count_only else max(10_000, 100*min_N_pts)
+    # whether to begin with a dry run
+    dry_running = count_only or (max_N_out is None)
+    if dry_running:
+        max_N_out = 2**62 # effectively uncapped
 
     H = np.asarray(H, dtype=np.int32)
     dim = H.shape[1]
@@ -125,16 +135,18 @@ def enum_lattice_points(
             rhs=rhs,
             max_N_out=max_N_out,
             max_N_nodes=max_N_nodes,
-            count_only=count_only,
+            count_only=dry_running,
             primitive=primitive,
         )
-        pts = None if count_only else _res
+
+        pts = None if dry_running else _res
+        N = _res if dry_running else len(pts) # points found in this box
         if verbosity >= 1:
             N_nodes_B = ((2*B + 1)**(dim + 1) - 1) // (2*B)
-            fill_fraction = len(pts) / (2*B + 1)**dim
+            fill_fraction = N / (2*B + 1)**dim
             exploration_fraction = N_nodes_seen / N_nodes_B
             efficiency = N_nodes_dense / N_nodes_seen if N_nodes_seen > 0 else 0.0
-            print(f"B={B}: N_out={len(pts)}, "
+            print(f"B={B}: N_out={N}, "
                   f"fill_fraction={fill_fraction:.3e}, "
                   f"exploration_fraction={exploration_fraction:.3e}, "
                   f"efficiency={efficiency:.3e}",
@@ -149,14 +161,10 @@ def enum_lattice_points(
                 f"(= floor(N_nodes_dense / min_efficiency), N_nodes = N_iterations + 1)"
             )
 
-        # count_only returns just the tally; otherwise keep the largest
-        # point set found across the B iterations
-        if count_only:
-            N = _res
-        else:
-            N = len(pts)
-            if N > len(best_pts):
-                best_pts = pts
+        # when materializing during the search (caller supplied max_N_out), keep
+        # the largest point set found across the B iterations
+        if not dry_running and N > len(best_pts):
+            best_pts = pts
 
         # check if done
         if N >= min_N_pts:
@@ -208,6 +216,20 @@ def enum_lattice_points(
     if count_only:
         # dry run: return the box B reached and the count N
         return B, N
+
+    if dry_running and N > 0:
+        # default path: materialize once at the final box B, sized exactly to
+        # the N points it contains (no oversized buffer)
+        best_pts, _, _ = box_enum(
+            B=min(B, _B_INT_MAX),
+            H=H,
+            rhs=rhs,
+            max_N_out=N,
+            max_N_nodes=max_N_nodes,
+            count_only=False,
+            primitive=primitive,
+        )
+
     if len(best_pts) < min_N_pts:
         msg = f"returning {len(best_pts)} points, fewer than min_N_pts={min_N_pts}"
         if stop_why is not None:

@@ -131,7 +131,8 @@ int main(int argc, char *argv[])
         rhs,
         N_hyps,
         max_N_out,
-        max_N_iter);
+        max_N_iter,
+        0);   // primitive = 0 (no GCD filtering)
     clock_t t_end = clock();
     double eval_time = (double)(t_end - t_start) / CLOCKS_PER_SEC;
 
