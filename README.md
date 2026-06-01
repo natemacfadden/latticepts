@@ -1,7 +1,7 @@
 # latticepts
 *[Nate MacFadden](https://github.com/natemacfadden), Liam McAllister Group, Cornell*
 
-[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.19406651.svg)](https://doi.org/10.5281/zenodo.19406651)
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.19405318.svg)](https://doi.org/10.5281/zenodo.19405318)
 
 Fast lattice point enumeration for convex polyhedra. A C/Cython implementation of Kannan's algorithm, significantly outperforming Normaliz and OR-Tools CP-SAT in speed for certain problems. As one performance example: `latticepts` generates ~107M lattice points in the strict interior of an example 7D cone (['Manwe'](https://arxiv.org/abs/2406.13751)) in ~23s. See [the benchmarks](#benchmarks) for benchmarking plots.
 
@@ -13,7 +13,7 @@ If you use `latticepts` in your research, please cite it:
 @software{latticepts,
   author  = {MacFadden, Nate},
   title   = {latticepts},
-  doi     = {10.5281/zenodo.19406651},
+  doi     = {10.5281/zenodo.19405318},
   url     = {https://github.com/natemacfadden/latticepts},
   orcid   = {0000-0002-8481-3724},
 }
