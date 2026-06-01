@@ -61,7 +61,8 @@ int _box_enum_c(
     int * restrict rhs,
     int N_hyps,
     long max_N_out,
-    long max_N_nodes
+    long max_N_nodes,
+    int primitive
 );
 
 
@@ -203,7 +204,8 @@ int _box_enum_c(
     int * restrict rhs,
     int N_hyps,
     long max_N_out,
-    long max_N_nodes)
+    long max_N_nodes,
+    int primitive)
 {
     /* (see header doc) */
     // check dimensions are reasonable
@@ -283,12 +285,23 @@ int _box_enum_c(
         // save if node is complete
         // if i==-1, then we have fully written vec
         if (i == -1) {
+            // primitive filter (gcd of |components| == 1); only when requested
+            if (primitive) {
+                int32_t g = 0;
+                for (int t = 0; t < dim; t++) {
+                    int32_t a = vec[t] < 0 ? -vec[t] : vec[t];
+                    while (a) { int32_t r = g % a; g = a; a = r; }
+                }
+                if (g != 1) { sp--; continue; }   // not primitive: skip (don't count/emit)
+            }
+
             if (op >= max_N_out) {
                 status = -2;
                 goto end;
             }
 
-            memcpy(&out[op * dim], vec, dim * sizeof(int32_t));
+            // out == NULL  ->  count-only (dry run): tally op without writing
+            if (out != NULL) memcpy(&out[op * dim], vec, dim * sizeof(int32_t));
 
             op++;
 

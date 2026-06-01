@@ -20,7 +20,8 @@ cdef extern from "box_enum.h":
         int * rhs,
         int N_hyps,
         long max_N_out,
-        long max_N_nodes
+        long max_N_nodes,
+        int primitive
     )
 
 # Python-exposed wrapper
@@ -29,7 +30,9 @@ def box_enum(B: int,
                 int[:, ::1] H,
                 rhs,
                 long max_N_out,
-                long max_N_nodes = -1) -> tuple[np.ndarray, int, int]:
+                long max_N_nodes = -1,
+                bint count_only = False,
+                bint primitive = False) -> tuple:
     """
     Enumerate lattice points ``vec`` obeying ``H @ vec >= rhs`` and
     ``|vec_i| <= B`` using Kannan's algorithm.
@@ -94,10 +97,12 @@ def box_enum(B: int,
     else:
         rhs_ptr = NULL
 
-    # allocate output arrays
-    cdef int32_t *c_out = <int32_t *>malloc(max_N_out * dim * sizeof(int32_t))
-    if c_out == NULL:
-        raise MemoryError("Failed to allocate c_out")
+    # allocate output arrays (count_only -> no buffer; kernel just tallies)
+    cdef int32_t *c_out = NULL
+    if not count_only:
+        c_out = <int32_t *>malloc(max_N_out * dim * sizeof(int32_t))
+        if c_out == NULL:
+            raise MemoryError("Failed to allocate c_out")
 
     # ensure H is sorted to have strict constraints coming first
     H_np = np.asarray(H)
@@ -132,8 +137,13 @@ def box_enum(B: int,
         rhs_ptr,
         N_hyps,
         max_N_out,
-        max_N_nodes
+        max_N_nodes,
+        1 if primitive else 0
     );
+
+    # count-only dry run: no buffer to unpack, just return the tally
+    if count_only:
+        return int(N_out), status, N_nodes
 
     if N_out == 0:
         free(c_out)

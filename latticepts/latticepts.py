@@ -37,6 +37,7 @@ def enum_lattice_points(
     primitive: bool = False,
     max_B: int = 10_000,
     min_efficiency: float = 1e-6,
+    count_only: bool = False,
     verbosity: int = 0) -> np.ndarray:
     """
     Generate (optionally primitive) lattice points in
@@ -77,7 +78,7 @@ def enum_lattice_points(
     if min_N_pts <= 0:
         raise ValueError(f"min_N_pts must be > 0, got {min_N_pts}.")
 
-    max_N_out = max(10_000, 100*min_N_pts)
+    max_N_out = min_N_pts if count_only else max(10_000, 100*min_N_pts)
 
     H = np.asarray(H, dtype=np.int32)
     dim = H.shape[1]
@@ -118,13 +119,16 @@ def enum_lattice_points(
                   flush=True)
 
         # the actual work (box_enum takes C int; cap B at INT_MAX)
-        pts, status, N_nodes_seen = box_enum(
+        _res, status, N_nodes_seen = box_enum(
             B=min(B, _B_INT_MAX),
             H=H,
             rhs=rhs,
             max_N_out=max_N_out,
             max_N_nodes=max_N_nodes,
+            count_only=count_only,
+            primitive=(count_only and primitive),
         )
+        pts = None if count_only else _res
         if verbosity >= 1:
             N_nodes_B = ((2*B + 1)**(dim + 1) - 1) // (2*B)
             fill_fraction = len(pts) / (2*B + 1)**dim
@@ -146,12 +150,15 @@ def enum_lattice_points(
             )
 
         # remove points with nontrivial GCDs
-        if primitive and (len(pts) > 0):
-            gcds = np.gcd.reduce(pts, axis=1)
-            pts  = pts[gcds == 1]
-        N = len(pts)
-        if N > len(best_pts):
-            best_pts = pts
+        if count_only:
+            N = _res   # primitive filter already applied in-kernel
+        else:
+            if primitive and (len(pts) > 0):
+                gcds = np.gcd.reduce(pts, axis=1)
+                pts  = pts[gcds == 1]
+            N = len(pts)
+            if N > len(best_pts):
+                best_pts = pts
 
         # check if done
         if N >= min_N_pts:
@@ -200,9 +207,22 @@ def enum_lattice_points(
             # be very conservative with B if we have few points
             B += min(3, int(np.ceil(0.05*B)))
 
+    if count_only:
+        # dry run: return the box B reached (the L-inf frontier) and the count N
+        return B, N
     if len(best_pts) < min_N_pts:
         msg = f"returning {len(best_pts)} points, fewer than min_N_pts={min_N_pts}"
         if stop_why is not None:
             msg += f"; stopped because {stop_why}"
         warnings.warn(msg)
     return best_pts
+
+
+def min_B_for(H, rhs, min_N_pts, primitive=True, max_B=10_000, verbosity=0):
+    """
+    Dry run: determine the smallest box size B such that enum_lattice_points
+    generates min_N_pts lattice points.
+    """
+    return enum_lattice_points(H, rhs, min_N_pts, primitive=primitive,
+                               max_B=max_B, count_only=True,
+                               verbosity=verbosity)
