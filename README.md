@@ -46,7 +46,7 @@ This repo contains a Cython wrapper of a C implementation of [Kannan's algorithm
 
 $$ \\{x\in\mathbb{Z}^{\text{dim}}: Hx\geq\text{rhs} \text{ and } |x|_\infty \leq B\\}. $$
 
-It is a [short algorithm](https://github.com/natemacfadden/latticepts/blob/main/latticepts/box_enum.h), only $\leq 350$ lines - I encourage you to read it. If Python is easier to follow, [`docs/kannan_reference.py`](https://github.com/natemacfadden/latticepts/blob/main/docs/kannan_reference.py) is a pedagogical `numba.njit` port of the same algorithm. The Python port is efficient but has less options than `box_enum` (scalar `rhs` only, so cones and stretched cones but not general polyhedra) and is not used at runtime.
+It is a [short algorithm](https://github.com/natemacfadden/latticepts/blob/main/latticepts/box_enum.h), only $\leq 350$ lines - I encourage you to read it. If Python is easier to follow, [`reference/kannan_reference.py`](https://github.com/natemacfadden/latticepts/blob/main/reference/kannan_reference.py) is a pedagogical `numba.njit` port of the same algorithm. The Python port is efficient but has less options than `box_enum` (scalar `rhs` only, so cones and stretched cones but not general polyhedra) and is not used at runtime.
 
 A helper method to `box_enum` is provided in case the user wants $N$ points but doesn't care about box size. One such task here is for enumerating some lattice points in convex cones. In this case, boxes of increasing sizes $B$ are studied until $\geq N$ lattice points are found.
 
@@ -129,13 +129,16 @@ latticepts/
 │   ├── test_box_enum.py                 # tests of box_enum tests
 │   ├── test_manwe.py                    # tests relating to 'Manwe' (arXiv:2406.13751)
 │   ├── test_enum_lattice_points.py      # tests of enum_lattice_points
-│   │
+|   └── c/                               # simple C-kernel tests (no Python interface)
+├── benchmarks/                          # perf benchmarks; double as usage examples + make the README figures
 │   ├── benchmark_box_enum.py            # runtime vs B for the Manwe geometry (h11=491, 7D)
+│   ├── benchmark_cytools.py             # runtime vs CYTools' point enumeration
 │   ├── benchmark_enum_lattice_points.py # runtime vs requested N for the Manwe cone (h11=491, 7D)
 │   ├── benchmark_polytopes.py           # runtime vs h11 for 4D reflexive polytopes; runtime vs dimension for hypercubes
-│   ├── benchmark_narrowness.py          # runtime vs narrowness for a 4D convex cone
-│   │
-|   └── c/                               # simple C-kernel tests (no Python interface)
+│   └── benchmark_narrowness.py          # runtime vs narrowness for a 4D convex cone
+├── reference/
+│   └── kannan_reference.py              # readable pure-Python (numba.njit) port of the algorithm; not used at runtime
+├── docs/                                # README figures (benchmark_*.png)
 ├── pyproject.toml
 └── setup.py
 ```
