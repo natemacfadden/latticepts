@@ -46,7 +46,7 @@ This repo contains a Cython wrapper of a C implementation of [Kannan's algorithm
 
 $$ \\{x\in\mathbb{Z}^{\text{dim}}: Hx\geq\text{rhs} \text{ and } |x|_\infty \leq B\\}. $$
 
-It is a [short algorithm](https://github.com/natemacfadden/latticepts/blob/main/latticepts/box_enum.h), only $\leq 350$ lines - I encourage you to read it. If Python is easier to follow, [`reference/kannan_reference.py`](https://github.com/natemacfadden/latticepts/blob/main/reference/kannan_reference.py) is a pedagogical `numba.njit` port of the same algorithm. The Python port is efficient but has less options than `box_enum` (scalar `rhs` only, so cones and stretched cones but not general polyhedra) and is not used at runtime.
+It is a [short, single-file implementation](https://github.com/natemacfadden/latticepts/blob/main/latticepts/box_enum.h): one self-contained, dependency-free C header (`box_enum.h`, ~290 lines of code, depending only on the C standard library) - I encourage you to read it. If Python is easier to follow, [`reference/kannan_reference.py`](https://github.com/natemacfadden/latticepts/blob/main/reference/kannan_reference.py) is a pedagogical `numba.njit` port of the same algorithm. The Python port is efficient but has less options than `box_enum` (scalar `rhs` only, so cones and stretched cones but not general polyhedra) and is not used at runtime.
 
 A helper method to `box_enum` is provided in case the user wants $N$ points but doesn't care about box size. One such task here is for enumerating some lattice points in convex cones. In this case, boxes of increasing sizes $B$ are studied until $\geq N$ lattice points are found.
 
@@ -95,7 +95,7 @@ pts = enum_lattice_points(H=H, rhs=rhs, min_N_pts=1000, primitive=True)
 from latticepts import box_enum
 
 pts, status, N_nodes = box_enum(B=5, H=H, rhs=rhs, max_N_out=10_000)
-# status: 0 = success, -1 = dim>256, -2 = hit max_N_out, -3 = hit max_N_nodes
+# status: 0 = success, -1 = dim>256, -2 = hit max_N_out, -3 = hit max_N_nodes, -4 = too many constraints
 # (statuses are also explained in the docstring)
 ```
 
