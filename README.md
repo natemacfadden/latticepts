@@ -5,6 +5,8 @@
 
 Fast lattice point enumeration for convex polyhedra. A C/Cython implementation of Kannan's algorithm, significantly outperforming Normaliz and OR-Tools CP-SAT in speed for certain problems. As one performance example: `latticepts` generates ~107M lattice points in the strict interior of an example 7D cone (['Manwe'](https://arxiv.org/abs/2406.13751)) in ~23s. See [the benchmarks](#benchmarks) for benchmarking plots.
 
+**Used by** [CYTools](https://cy.tools/) and (forthcoming) [Macaulay2](https://macaulay2.com/).
+
 ## Citation
 
 If you use `latticepts` in your research, please cite it:
