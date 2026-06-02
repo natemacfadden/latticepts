@@ -50,6 +50,7 @@ int
        -1  : dim > 256 (unsupported)
        -2  : exceeded max_N_out outputs
        -3  : exceeded max_N_nodes
+       -4  : N_hyps too large (constraint buffers would overflow the stack)
 */
 int _box_enum_c(
     int32_t * restrict out,
@@ -71,6 +72,9 @@ int _box_enum_c(
 #ifdef BOX_ENUM_IMPLEMENTATION
 
 #define MAX_SUPPORTED_DIM 256
+// budget for the N_hyps-sized stack VLAs in _box_enum_c; inputs exceeding it
+// return status -4 instead of overflowing the stack
+#define MAX_CONSTRAINT_STACK_BYTES (4 * 1024 * 1024)
 
 #include <math.h>
 #include <stdio.h>
@@ -213,6 +217,15 @@ int _box_enum_c(
     if (dim > MAX_SUPPORTED_DIM) {
         *N_out = 0;
         return -1;
+    }
+
+    // the N_hyps-sized VLAs below (stack_partial_sum, abssum) live on the stack;
+    // reject inputs whose footprint would overflow a typical ~8 MB stack instead
+    // of crashing with no recoverable error
+    if ((long)N_hyps * (dim + 1) * (long)(sizeof(int64_t) + sizeof(int))
+            > MAX_CONSTRAINT_STACK_BYTES) {
+        *N_out = 0;
+        return -4;
     }
 
     // define variables
@@ -376,6 +389,7 @@ int _box_enum_c(
 }
 
 #undef MAX_SUPPORTED_DIM
+#undef MAX_CONSTRAINT_STACK_BYTES
 
 #endif // BOX_ENUM_IMPLEMENTATION
 

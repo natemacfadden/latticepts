@@ -153,6 +153,10 @@ def enum_lattice_points(
                   flush=True)
         if status == -1:
             raise ValueError(f"dim={H.shape[1]} > 256 (unsupported by box_enum)")
+        elif status == -4:
+            raise ValueError(
+                f"N_hyps={H.shape[0]} too large (box_enum's constraint buffers "
+                f"would overflow the stack)")
         elif status == -2:
             warnings.warn(f"exceeded max_N_out={max_N_out} outputs")
         elif status == -3:

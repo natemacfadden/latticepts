@@ -69,6 +69,7 @@ def box_enum(B: int,
            -1  : dim > 256 (unsupported)
            -2  : exceeded max_N_out outputs
            -3  : exceeded max_N_nodes
+           -4  : N_hyps too large (constraint buffers would overflow the stack)
     N_nodes : int
         Number of search tree nodes visited (including the root), where
         N_nodes = N_iterations + 1.
