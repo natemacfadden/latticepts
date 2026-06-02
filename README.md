@@ -52,6 +52,8 @@ A helper method to `box_enum` is provided in case the user wants $N$ points but 
 
 ## Benchmarks
 
+All benchmarks below were measured on an Apple M1 MacBook Pro (macOS) with the default `pip install` build (Apple Clang, `-O3`). Each plotted point is a single representative run.
+
 **Convex cones:** runtime vs requested number of interior lattice points in a cone (i.e., not on the boundary). The cone studied is the 7D 'Manwe' from https://arxiv.org/abs/2406.13751:
 
 <p align="center">
