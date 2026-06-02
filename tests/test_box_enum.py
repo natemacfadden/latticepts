@@ -249,3 +249,21 @@ def test_vs_cpsat(name, rhs_val):
         _sort_rows(out_kan.astype(np.int64)),
         _sort_rows(out_cp),
     )
+
+
+# an all-zero row is the constant constraint 0 >= rhs; it must not
+# be silently ignored (rhs > 0 is infeasible, rhs <= 0 is trivially satisfied)
+
+def test_zero_row_infeasible():
+    # 0 >= rhs is unsatisfiable for rhs >= 1, so the feasible set is empty
+    H = np.array([[1, 0], [0, 0]], dtype=np.int32)
+    out, status, _ = box_enum(B=2, H=H, rhs=1, max_N_out=MAX_N_OUT)
+    assert status == 0 and out.shape[0] == 0
+
+
+def test_zero_row_feasible():
+    # 0 >= rhs holds for rhs <= 0, so points must still be returned (not dropped)
+    H = np.array([[1, 0], [0, 0]], dtype=np.int32)
+    out, status, _ = box_enum(B=2, H=H, rhs=0, max_N_out=MAX_N_OUT)
+    assert status == 0 and out.shape[0] > 0
+    assert (H @ out.T >= 0).all()
