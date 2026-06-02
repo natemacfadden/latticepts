@@ -134,7 +134,6 @@ latticepts/
 |   └── c/                               # simple C-kernel tests (no Python interface)
 ├── benchmarks/                          # perf benchmarks; double as usage examples + make the README figures
 │   ├── benchmark_box_enum.py            # runtime vs B for the Manwe geometry (h11=491, 7D)
-│   ├── benchmark_cytools.py             # runtime vs CYTools' point enumeration
 │   ├── benchmark_enum_lattice_points.py # runtime vs requested N for the Manwe cone (h11=491, 7D)
 │   ├── benchmark_polytopes.py           # runtime vs h11 for 4D reflexive polytopes; runtime vs dimension for hypercubes
 │   └── benchmark_narrowness.py          # runtime vs narrowness for a 4D convex cone
