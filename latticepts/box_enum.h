@@ -244,6 +244,14 @@ int _box_enum_c(
         for (int k=0; k<dim; ++k) {
             abssum[j*(dim+1) + k+1] = abssum[j*(dim+1) + k] + abs(H[j*dim + k]);
         }
+
+        // an all-zero row j is the constant constraint 0 >= rhs[j]; set_bounds
+        // skips zero coefficients so the row is otherwise ignored, hence if
+        // rhs[j] > 0 the constraint is unsatisfiable and the feasible set is empty
+        if (abssum[j*(dim+1) + dim] == 0 && rhs[j] > 0) {
+            *N_out = 0;
+            return 0;
+        }
     }
 
     // initialize stack
