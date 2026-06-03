@@ -105,7 +105,7 @@ static inline int set_bounds(
     int * restrict H,
     int * restrict rhs,
     int64_t * restrict stack_partial_sum,
-    int * restrict abssum,
+    int64_t * restrict abssum,
     int32_t * restrict stack_val_min,
     int32_t * restrict stack_val_len)
 {
@@ -120,9 +120,9 @@ static inline int set_bounds(
     i : int
         Component index being bounded.
     dim, N_hyps, B, H, rhs : (see _box_enum_c; rhs[j] is the bound for constraint j)
-    stack_partial_sum : int32_t*
+    stack_partial_sum : int64_t*
         Partial dot products ``H @ vec`` for components already fixed.
-    abssum : int*
+    abssum : int64_t*
         Precomputed prefix sums of |H[:,k]| for each constraint.
     stack_val_min : int32_t*
         Written with the minimum value to try for vec[i].
@@ -250,7 +250,7 @@ int _box_enum_c(
     int sp = 0;
 
     // misc helpers
-    int abssum[N_hyps*(dim+1)];
+    int64_t abssum[N_hyps*(dim+1)];
     for (int j=0; j<N_hyps; ++j) {
         abssum[j*(dim+1) + 0] = 0;
 
