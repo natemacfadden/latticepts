@@ -25,7 +25,7 @@ Install any or all of the following to enable comparisons:
 ```
 pip install PyNormaliz
 ```
-Requires the [Normaliz](https://www.normaliz.uni-osnabrueck.de) C++ library to be installed separately.
+On macOS and Linux, pip pulls a prebuilt wheel that bundles the [Normaliz](https://www.normaliz.uni-osnabrueck.de) C++ library, so no separate install is needed. Elsewhere, install the Normaliz C++ library first.
 
 ### OR-Tools (CP-SAT)
 ```
