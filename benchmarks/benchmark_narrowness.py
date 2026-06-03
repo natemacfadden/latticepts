@@ -78,7 +78,7 @@ print("-" * 48)
 t0 = time.perf_counter()
 enum_lattice_points(H=H_empty, rhs=rhs, min_N_pts=N, verbosity=0, max_B=MAX_B)
 t_unconstrained = time.perf_counter() - t0
-print(f"{'—':>10}  {'no constraints':>22}  {t_unconstrained:>10.3f}")
+print(f"{'--':>10}  {'no constraints':>22}  {t_unconstrained:>10.3f}")
 
 times = []
 for (a, b), c in zip(AB_VALUES, C_EFF):
