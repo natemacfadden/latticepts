@@ -17,9 +17,10 @@
 
 import os
 import numpy as np
-import time
 
 from latticepts import box_enum
+
+from _bench import timed_median
 
 # the following imports are only needed for benchmarking
 try:
@@ -204,34 +205,47 @@ def _skip_fmt(label):
 
 
 if not HAS_NORMALIZ or not HAS_CPSAT:
-    missing = [name for name, flag in [("PyNormaliz", HAS_NORMALIZ), ("ortools", HAS_CPSAT)] if not flag]
+    missing = [name for name, flag
+               in [("PyNormaliz", HAS_NORMALIZ), ("ortools", HAS_CPSAT)]
+               if not flag]
     print(f"NI: {', '.join(missing)} not installed")
 
-print(f"{'B':>3}  {'N':>8}  {'fill_frac':>9}  {'expl_frac':>9}  {'effic':>9}  {'box_enum':>11}  {'normaliz':>11}  {'cpsat':>11}")
+print(f"{'B':>3}  {'N':>8}  {'fill_frac':>9}  {'expl_frac':>9}  "
+      f"{'effic':>9}  {'box_enum':>11}  {'normaliz':>11}  {'cpsat':>11}")
 print("-" * 85)
 
 skip_box      = None
 skip_normaliz = "NI" if not HAS_NORMALIZ else None
 skip_cpsat    = "NI" if not HAS_CPSAT    else None
 
-plot_N        = []
-plot_t_box    = []
-plot_t_norm   = []
-plot_t_cpsat  = []
+plot_N          = []
+plot_t_box      = []
+plot_t_box_lo   = []
+plot_t_box_hi   = []
+plot_t_norm     = []
+plot_t_norm_lo  = []
+plot_t_norm_hi  = []
+plot_t_cpsat    = []
+plot_t_cpsat_lo = []
+plot_t_cpsat_hi = []
 
 for B in range(1, 30+1):
     if all(s is not None for s in (skip_box, skip_normaliz, skip_cpsat)):
         break
 
     if skip_box is None:
-        t0 = time.perf_counter()
-        out, status, N_nodes_seen = box_enum(B=B, H=H, rhs=rhs, max_N_out=MAX_N_OUT, max_N_nodes=MAX_N_NODES)
-        elapsed = time.perf_counter() - t0
+        # one call for the point count + node stats, then timed repeats
+        out, status, N_nodes_seen = box_enum(
+            B=B, H=H, rhs=rhs, max_N_out=MAX_N_OUT, max_N_nodes=MAX_N_NODES)
+        elapsed, lo, hi = timed_median(
+            box_enum, B=B, H=H, rhs=rhs,
+            max_N_out=MAX_N_OUT, max_N_nodes=MAX_N_NODES)
         N = out.shape[0]
         N_nodes_B = ((2*B + 1)**(dim + 1) - 1) // (2*B)
         fill_fraction = N / (2*B + 1)**dim
         exploration_fraction = N_nodes_seen / N_nodes_B
-        N_nodes_dense = sum(N**(k/dim) for k in range(dim + 1)) if N > 0 else 0.0
+        N_nodes_dense = (sum(N**(k/dim) for k in range(dim + 1))
+                         if N > 0 else 0.0)
         efficiency = N_nodes_dense / N_nodes_seen if N_nodes_seen > 0 else 0.0
         t_box = _fmt(elapsed)
         n_str  = f"{N:>8}"
@@ -240,6 +254,8 @@ for B in range(1, 30+1):
         ef_str = f"{efficiency:>9.2e}"
         plot_N.append(N)
         plot_t_box.append(elapsed)
+        plot_t_box_lo.append(lo)
+        plot_t_box_hi.append(hi)
         if elapsed > TIMEOUT:
             skip_box = "TO"
     else:
@@ -250,28 +266,29 @@ for B in range(1, 30+1):
         ef_str = f"{'':>9}"
 
     if skip_normaliz is None:
-        t0 = time.perf_counter()
-        run_normaliz(B)
-        elapsed_norm = time.perf_counter() - t0
+        elapsed_norm, lo, hi = timed_median(run_normaliz, B)
         t_normaliz = _fmt(elapsed_norm)
         plot_t_norm.append(elapsed_norm)
+        plot_t_norm_lo.append(lo)
+        plot_t_norm_hi.append(hi)
         if elapsed_norm > TIMEOUT:
             skip_normaliz = "TO"
     else:
         t_normaliz = _skip_fmt(skip_normaliz)
 
     if skip_cpsat is None:
-        t0 = time.perf_counter()
-        run_cpsat(B)
-        elapsed_cp = time.perf_counter() - t0
+        elapsed_cp, lo, hi = timed_median(run_cpsat, B)
         t_cpsat = _fmt(elapsed_cp)
         plot_t_cpsat.append(elapsed_cp)
+        plot_t_cpsat_lo.append(lo)
+        plot_t_cpsat_hi.append(hi)
         if elapsed_cp > TIMEOUT:
             skip_cpsat = "TO"
     else:
         t_cpsat = _skip_fmt(skip_cpsat)
 
-    print(f"{B:>3}  {n_str}  {cw_str}  {fd_str}  {ef_str}  {t_box}  {t_normaliz}  {t_cpsat}")
+    print(f"{B:>3}  {n_str}  {cw_str}  {fd_str}  {ef_str}  "
+          f"{t_box}  {t_normaliz}  {t_cpsat}")
 
 # =============================================================================
 # Plot
@@ -280,11 +297,24 @@ for B in range(1, 30+1):
 if HAS_MPL and plot_N:
     fig, ax = plt.subplots(figsize=(7, 4))
 
-    ax.plot(plot_N, plot_t_box, 'o-', color='steelblue', label='latticepts (box_enum)')
+    def _yerr(med, lo, hi):
+        med = np.asarray(med)
+        return [med - np.asarray(lo), np.asarray(hi) - med]
+
+    ax.errorbar(plot_N, plot_t_box,
+                yerr=_yerr(plot_t_box, plot_t_box_lo, plot_t_box_hi),
+                fmt='o-', color='steelblue', capsize=3,
+                label='latticepts (box_enum)')
     if plot_t_norm:
-        ax.plot(plot_N[:len(plot_t_norm)], plot_t_norm, 's--', color='tomato',   label='Normaliz')
+        n = len(plot_t_norm)
+        ax.errorbar(plot_N[:n], plot_t_norm,
+                    yerr=_yerr(plot_t_norm, plot_t_norm_lo, plot_t_norm_hi),
+                    fmt='s--', color='tomato', capsize=3, label='Normaliz')
     if plot_t_cpsat:
-        ax.plot(plot_N[:len(plot_t_cpsat)], plot_t_cpsat, '^--', color='goldenrod', label='CP-SAT')
+        n = len(plot_t_cpsat)
+        ax.errorbar(plot_N[:n], plot_t_cpsat,
+                    yerr=_yerr(plot_t_cpsat, plot_t_cpsat_lo, plot_t_cpsat_hi),
+                    fmt='^--', color='goldenrod', capsize=3, label='CP-SAT')
 
     ax.set_xlabel('N')
     ax.set_ylabel('time (s)')
@@ -294,7 +324,8 @@ if HAS_MPL and plot_N:
     ax.set_yscale('log')
     ax.legend()
     plt.tight_layout()
-    out = os.path.join(os.path.dirname(__file__), '..', 'docs', 'benchmark_box_enum.png')
+    out = os.path.join(os.path.dirname(__file__), '..', 'docs',
+                       'benchmark_box_enum.png')
     plt.savefig(out, dpi=150)
     plt.show()
     print(f"Saved {out}")
