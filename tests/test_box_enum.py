@@ -207,12 +207,16 @@ MAX_N_NODES = 1_000_000_000_000
 @pytest.mark.parametrize("rhs_val", RHS_VALUES)
 def test_counts(name, rhs_val):
     c = TEST_CASES[name]
-    out, status, _ = box_enum(B=c["B"], H=c["H"], rhs=rhs_val,
-                           max_N_out=MAX_N_OUT, max_N_nodes=MAX_N_NODES)
+    # count_only=True: tally without materializing the point set (the heavy
+    # cases, e.g. dim12 ~19M pts, would otherwise pre-allocate ~1GB and can
+    # OOM a memory-limited runner). This test only ever checked the count.
+    count, status, _ = box_enum(B=c["B"], H=c["H"], rhs=rhs_val,
+                                max_N_out=MAX_N_OUT, max_N_nodes=MAX_N_NODES,
+                                count_only=True)
     assert status == 0
     expected = EXPECTATIONS[name][rhs_val]
-    assert out.shape[0] == expected, \
-        f"{name}, rhs={rhs_val}: got {out.shape[0]}, expected {expected}"
+    assert count == expected, \
+        f"{name}, rhs={rhs_val}: got {count}, expected {expected}"
 
 
 @pytest.mark.parametrize("name", COMPARISON_CASES)

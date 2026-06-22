@@ -123,24 +123,25 @@ def _fmt_N(n):
     return str(n)
 
 
-print(f"{'N':>5}  {'N_out':>6}  {'enum_lattice_pts':>18}")
-print("-" * 35)
+if __name__ == "__main__":
+    print(f"{'N':>5}  {'N_out':>6}  {'enum_lattice_pts':>18}")
+    print("-" * 35)
 
-skip = None
+    skip = None
 
-for N in N_VALUES:
-    n_str = _fmt_N(N)
+    for N in N_VALUES:
+        n_str = _fmt_N(N)
 
-    if skip is not None:
-        print(f"{n_str:>5}  {'TO':>6}  {_skip_fmt(skip)}")
-        continue
+        if skip is not None:
+            print(f"{n_str:>5}  {'TO':>6}  {_skip_fmt(skip)}")
+            continue
 
-    t0 = time.perf_counter()
-    # explicit buffer -> fast single-pass path (skips the count-only dry run)
-    pts = enum_lattice_points(H=H, rhs=rhs, min_N_pts=N, max_N_out=max(10_000, 4*N))
-    elapsed = time.perf_counter() - t0
+        t0 = time.perf_counter()
+        # explicit buffer -> fast single-pass path (skips the count-only dry run)
+        pts = enum_lattice_points(H=H, rhs=rhs, min_N_pts=N, max_N_out=max(10_000, 4*N))
+        elapsed = time.perf_counter() - t0
 
-    print(f"{n_str:>5}  {_fmt_N(len(pts)):>6}  {_fmt(elapsed)}")
+        print(f"{n_str:>5}  {_fmt_N(len(pts)):>6}  {_fmt(elapsed)}")
 
-    if elapsed > TIMEOUT:
-        skip = "TO"
+        if elapsed > TIMEOUT:
+            skip = "TO"
