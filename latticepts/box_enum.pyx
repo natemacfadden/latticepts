@@ -9,8 +9,11 @@ import numpy as np
 
 # declare the external C function
 # -------------------------------
-cdef extern from "box_enum.h":
-    int _box_enum_c(
+# box_enum_omp.h wraps box_enum.h: count-only calls use the OpenMP path when the
+# extension was built with -fopenmp (LATTICEPTS_OPENMP=1), else they forward to
+# the serial kernel. box_enum.h itself stays a clean, standalone serial artifact
+cdef extern from "box_enum_omp.h":
+    int _box_enum_c_omp(
         int32_t * out,
         long * N_out,
         long * N_nodes,
@@ -128,7 +131,7 @@ def box_enum(B: int,
         max_N_nodes = min(trivial, 9_200_000_000_000_000_000)  # cap at ~LONG_MAX
 
     # call the C function
-    status = _box_enum_c(
+    status = _box_enum_c_omp(
         c_out,
         &N_out,
         &N_nodes,

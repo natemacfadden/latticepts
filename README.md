@@ -29,6 +29,8 @@ $$ \\{x\in\mathbb{Z}^{\text{dim}}: Hx\geq\text{rhs}\\} $$
 
 for $H\in\mathbb{Z}^{N_\text{hyps}\times\text{dim}}$ and $\text{rhs}\in\mathbb{Z}^{N_\text{hyps}}$. Here each row of $H$ is an inward-facing facet normal and the corresponding entry of $\text{rhs}$ is its offset. Cones correspond to $\text{rhs}=0$; 'stretched cones' (e.g., for finding strict interior points) correspond to $\text{rhs} > 0$; polyhedra to general $\text{rhs}$.
 
+`latticepts` *materializes* the lattice points (lists them). The exposed `count_only` mode is there primarily to **size that allocation** -- it runs the search and reports how many output points there are (the matrix size to allocate) without itself allocating the (multi-GB) output array. Getting a count is incidental; for counting alone, [LattE](https://www.math.ucdavis.edu/~latte/) is likely faster. For *generating* the points, the closer competing approach is to compute/use a Hilbert basis.
+
 ## Limitations
 
 - Maximum dimension: 256. For convex cones, `latticepts` excels at low-dimensions. It can become sluggish in comparison to alternatives at higher-dimensions (well before 256)
@@ -41,6 +43,26 @@ pip install -e .
 ```
 
 Requires a C compiler.
+
+For a faster, machine-specific build from source, set `LATTICEPTS_NATIVE=1`:
+
+```
+LATTICEPTS_NATIVE=1 pip install -e .
+```
+
+Enumeration runs in parallel over the independent top-level search branches -- both counting and materializing. Opt in with `LATTICEPTS_OPENMP=1` (needs an OpenMP-capable compiler -- standard on most Linux machines, not on most Macs):
+
+```
+LATTICEPTS_OPENMP=1 pip install -e .
+```
+
+then set the thread count at runtime via the `OMP_NUM_THREADS` environment variable:
+
+```
+OMP_NUM_THREADS=8 python your_script.py
+```
+
+About 5x (counting) / 3.5x (materializing) on 8 cores in our tests, with no extra memory: counting holds only each thread's small `O(N_hyps * dim)` search state, and materializing fills disjoint slices of the single output buffer (no per-thread copies).
 
 ## Algorithm Notes
 
@@ -125,7 +147,8 @@ pts, status, N_nodes = box_enum(B=B, H=H, rhs=rhs, max_N_out=10_000)
 ```
 latticepts/
 ├── latticepts/
-│   ├── box_enum.h                       # STB-style library for the Kannan enumeration
+│   ├── box_enum.h                       # STB-style library for the Kannan enumeration (serial)
+│   ├── box_enum_omp.h                   # optional OpenMP parallel layer (count + materialize) over box_enum.h
 |   ├── box_enum.pyx                     # Cython wrapper
 |   └── latticepts.py                    # the enum_lattice_points wrapper for box_enum
 ├── tests/

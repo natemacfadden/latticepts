@@ -96,7 +96,7 @@ static inline int min_int(int a, int b) {
 }
 
 // Exact integer ceil/floor division (any signs, b != 0) for the rare
-// |numer| >= 2^53 case where set_bounds' double ceil/floor loses precision.
+// |numer| >= 2^53 case where set_bounds' double ceil/floor loses precision
 static inline int64_t floor_div_i64(int64_t a, int64_t b) {
     int64_t q = a / b, r = a % b;
     return (r != 0 && ((r < 0) != (b < 0))) ? q - 1 : q;
@@ -187,8 +187,8 @@ static inline int set_bounds(
 
         // |numer| <= |rhs| + B*sum|H[j]| stays under 2^53 for any feasible
         // box, so the double ceil/floor is exact and ~1.5x faster than int64
-        // division on this hot path. Guard the rare adversarial |numer| >= 2^53
-        // case with an exact integer fallback so the bound is never off-by-one.
+        // division on this hot path; guard the rare adversarial |numer| >= 2^53
+        // case with an exact integer fallback so the bound is never off-by-one
         const int64_t FP_EXACT = ((int64_t)1 << 53);
         if (h>0){
             int64_t v = (numer >= -FP_EXACT && numer <= FP_EXACT)
