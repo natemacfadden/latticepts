@@ -95,6 +95,17 @@ static inline int min_int(int a, int b) {
     return a < b ? a : b;
 }
 
+// Exact integer ceil/floor division (any signs, b != 0) for the rare
+// |numer| >= 2^53 case where set_bounds' double ceil/floor loses precision.
+static inline int64_t floor_div_i64(int64_t a, int64_t b) {
+    int64_t q = a / b, r = a % b;
+    return (r != 0 && ((r < 0) != (b < 0))) ? q - 1 : q;
+}
+static inline int64_t ceil_div_i64(int64_t a, int64_t b) {
+    int64_t q = a / b, r = a % b;
+    return (r != 0 && ((r < 0) == (b < 0))) ? q + 1 : q;
+}
+
 // Kannan vec[i] bound setting helper
 static inline int set_bounds(
     int sp,
@@ -174,15 +185,21 @@ static inline int set_bounds(
                       - stack_partial_sum[sp*N_hyps + j]
                       - (int64_t)B * (int64_t)abssum[j*(dim+1) + i];
 
-        // |numer| <= |rhs| + B*sum|H[j]| stays well under 2^53 for any
-        // feasible box, so the double ceil/floor below is safe, and
-        // measured ~1.5x faster than int64 division on this hot path
+        // |numer| <= |rhs| + B*sum|H[j]| stays under 2^53 for any feasible
+        // box, so the double ceil/floor is exact and ~1.5x faster than int64
+        // division on this hot path. Guard the rare adversarial |numer| >= 2^53
+        // case with an exact integer fallback so the bound is never off-by-one.
+        const int64_t FP_EXACT = ((int64_t)1 << 53);
         if (h>0){
-            double v = ceil((double)numer/h);
-            lo = max_int(lo, v > (double)hi ? hi + 1 : (int)v);
+            int64_t v = (numer >= -FP_EXACT && numer <= FP_EXACT)
+                        ? (int64_t)ceil((double)numer/h)
+                        : ceil_div_i64(numer, (int64_t)h);
+            lo = max_int(lo, v > (int64_t)hi ? hi + 1 : (int)v);
         } else {
-            double v = floor((double)numer/h);
-            hi = min_int(hi, v < (double)lo ? lo - 1 : (int)v);
+            int64_t v = (numer >= -FP_EXACT && numer <= FP_EXACT)
+                        ? (int64_t)floor((double)numer/h)
+                        : floor_div_i64(numer, (int64_t)h);
+            hi = min_int(hi, v < (int64_t)lo ? lo - 1 : (int)v);
         }
     }
 
