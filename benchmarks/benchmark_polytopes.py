@@ -42,7 +42,7 @@ from _bench import timed_median
 
 try:
     from cytools import fetch_polytopes
-    from cytools.polytope import saturating_lattice_pts
+    from cytools.polytope import saturating_lattice_pts  # CYTools routine; implements the Braun/SageMath algorithm
     HAS_CYTOOLS = True
 except ImportError:
     HAS_CYTOOLS = False
@@ -217,7 +217,7 @@ def plot_h11(h11s, time_latticepts, time_cytools, time_normaliz, time_cpsat):
     Xct, med_ct, ye_ct = _unpack(h11s, time_cytools)
     if Xct:
         ax.errorbar(Xct, med_ct, yerr=ye_ct, fmt='D', color='mediumpurple',
-                    ms=4, capsize=2, linestyle='none', label="SageMath (Braun)")
+                    ms=4, capsize=2, linestyle='none', label="CYTools (Braun alg.)")
 
     ax.set_xlabel('h11')
     ax.set_ylabel('time to compute lattice points (s)')
@@ -279,7 +279,7 @@ def run_dim_benchmark():
                          max_N_out=10_000_000, max_N_nodes=-1))
         num.append(n_lp)
 
-        if not skip_cytools and dim <= 6:
+        if not skip_cytools:
             ineqs = np.hstack([H, -rhs.reshape(-1, 1)])
             pts   = cube_verts(length, dim)
             n_ct  = len(saturating_lattice_pts(
@@ -340,7 +340,7 @@ def plot_dim(dims, num, time_latticepts, time_cytools, time_normaliz,
     Xct, med_ct, ye_ct = _unpack(num, time_cytools)
     if Xct:
         ax.errorbar(Xct, med_ct, yerr=ye_ct, fmt='D--', color='mediumpurple',
-                    capsize=3, label="SageMath (Braun)", zorder=3)
+                    capsize=3, label="CYTools (Braun alg.)", zorder=3)
 
     ax.set_xscale('log')
     ax.set_yscale('log')
