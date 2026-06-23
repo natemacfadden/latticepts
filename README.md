@@ -62,6 +62,12 @@ then set the thread count at runtime via the `OMP_NUM_THREADS` environment varia
 OMP_NUM_THREADS=8 python your_script.py
 ```
 
+The two build flags are independent and compose; for the fastest build, set both:
+
+```
+LATTICEPTS_NATIVE=1 LATTICEPTS_OPENMP=1 pip install -e .
+```
+
 Counting parallelizes well -- ~6x on 12 cores when there are many top-level branches (latticepts splits the search across the top coordinate's values, so that count caps the speedup); materializing gains less (~2x: its two-pass count-then-fill is more memory-bound), and the thread-startup overhead can make the serial path (`parallel=False`) faster for small outputs. No extra memory either way: counting holds only each thread's small `O(N_hyps * dim)` search state, and materializing fills disjoint slices of the single output buffer (no per-thread copies). See [the benchmarks](#benchmarks) for thread-scaling plots.
 
 ## Algorithm Notes
@@ -70,7 +76,7 @@ This repo contains a Cython wrapper of a C implementation of [Kannan's algorithm
 
 $$ \\{x\in\mathbb{Z}^{\text{dim}}: Hx\geq\text{rhs} \text{ and } |x|_\infty \leq B\\}. $$
 
-It is a [short, single-file implementation](https://github.com/natemacfadden/latticepts/blob/main/latticepts/box_enum.h): one self-contained, dependency-free C header (`box_enum.h`, ~290 lines of code, depending only on the C standard library) - I encourage you to read it. The single-file format was inspired by the [stb-style](https://github.com/nothings/stb). If Python is easier to follow, [`reference/kannan_reference.py`](https://github.com/natemacfadden/latticepts/blob/main/reference/kannan_reference.py) is a pedagogical `numba.njit` port of the same algorithm. The Python port is efficient but has less options than `box_enum` (scalar `rhs` only, so cones and stretched cones but not general polyhedra) and is not used at runtime.
+It is a [short, single-file implementation](https://github.com/natemacfadden/latticepts/blob/main/latticepts/box_enum.h): one self-contained, dependency-free C header (`box_enum.h`, ~290 lines of code, depending only on standard C libraries... no extra install) - I encourage you to read it. The single-file format was inspired by the [stb-style](https://github.com/nothings/stb). If Python is easier to follow, [`reference/kannan_reference.py`](https://github.com/natemacfadden/latticepts/blob/main/reference/kannan_reference.py) is a pedagogical `numba.njit` port of the same algorithm. The Python port is efficient but has less options than `box_enum` (scalar `rhs` only, so cones and stretched cones but not general polyhedra) and is not used at runtime.
 
 A helper method to `box_enum` is provided in case the user wants $N$ points but doesn't care about box size. One such task here is for enumerating some lattice points in convex cones. In this case, boxes of increasing sizes $B$ are studied until $\geq N$ lattice points are found.
 
