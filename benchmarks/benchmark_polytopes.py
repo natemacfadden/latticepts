@@ -94,6 +94,7 @@ def _run_cpsat_poly(H, B, rhs):
 
     solver = cp_model.CpSolver()
     solver.parameters.enumerate_all_solutions = True
+    solver.parameters.num_workers = 1   # single-threaded comparison
     solver.solve(model, _Collector())
     return len(solutions)
 
@@ -160,7 +161,7 @@ def run_h11_benchmark():
                             max_N_out=1_000_000, max_N_nodes=-1)[0])
         time_latticepts.append(
             timed_median(box_enum, B=B, H=H, rhs=rhs,
-                         max_N_out=1_000_000, max_N_nodes=-1))
+                         max_N_out=1_000_000, max_N_nodes=-1, parallel=False))
 
         if not skip_cytools:
             n_ct = len(saturating_lattice_pts(
@@ -276,7 +277,7 @@ def run_dim_benchmark():
                             max_N_out=10_000_000, max_N_nodes=-1)[0])
         time_latticepts.append(
             timed_median(box_enum, B=B, H=H, rhs=rhs,
-                         max_N_out=10_000_000, max_N_nodes=-1))
+                         max_N_out=10_000_000, max_N_nodes=-1, parallel=False))
         num.append(n_lp)
 
         if not skip_cytools:

@@ -174,8 +174,9 @@ int _box_enum_c_omp(
         int32_t t_vec[dim];
         int32_t t_si[dim+1], t_sp[dim+1], t_vmin[dim+1], t_vlen[dim+1];
         int64_t t_ps[N_hyps*(dim+1)];
-        // dynamic,1 won a schedule sweep on the Manwe count (tied with static,1);
-        // fine chunks matter here -- adjacent branches have correlated cost
+        // dynamic,1 won a schedule sweep on the Manwe count and materialize; fine
+        // chunks matter here -- adjacent branches have correlated cost, so coarse
+        // or guided schedules imbalance badly (2-3x slower in the sweep)
         #pragma omp for schedule(dynamic, 1)
         for (int b = 0; b < len0; b++) {
             long nb = 0;

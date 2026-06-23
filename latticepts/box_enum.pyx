@@ -7,13 +7,30 @@ from libc.stdint cimport int32_t
 from libc.stdlib cimport malloc, free
 import numpy as np
 
-# declare the external C function
-# -------------------------------
-# box_enum_omp.h wraps box_enum.h: count-only calls use the OpenMP path when the
-# extension was built with -fopenmp (LATTICEPTS_OPENMP=1), else they forward to
-# the serial kernel. box_enum.h itself stays a clean, standalone serial artifact
+# declare the external C functions
+# --------------------------------
+# box_enum_omp.h wraps box_enum.h and exposes both entry points: _box_enum_c is
+# the serial kernel; _box_enum_c_omp runs counting and materialization in
+# parallel when built with -fopenmp (LATTICEPTS_OPENMP=1), else forwards to the
+# serial kernel. The `parallel` kwarg below picks between them at call time, so a
+# single OpenMP build can run either back to back (e.g. for benchmarking)
 cdef extern from "box_enum_omp.h":
     int _box_enum_c_omp(
+        int32_t * out,
+        long * N_out,
+        long * N_nodes,
+        int dim,
+        int B,
+        int * H,
+        int * rhs,
+        int N_hyps,
+        long max_N_out,
+        long max_N_nodes,
+        int primitive
+    )
+
+cdef extern from "box_enum.h":
+    int _box_enum_c(
         int32_t * out,
         long * N_out,
         long * N_nodes,
@@ -35,7 +52,8 @@ def box_enum(B: int,
                 long max_N_out,
                 long max_N_nodes = -1,
                 bint count_only = False,
-                bint primitive = False) -> tuple:
+                bint primitive = False,
+                bint parallel = True) -> tuple:
     """
     Enumerate lattice points ``vec`` obeying ``H @ vec >= rhs`` and
     ``|vec_i| <= B`` using Kannan's algorithm.
@@ -61,6 +79,12 @@ def box_enum(B: int,
         N_iterations + 1, counting the root). Defaults to
         ``((2*B+1)**(dim+1) - 1) // (2*B)``, the node count for N_hyps=0
         (no hyperplane constraints), i.e. the maximum possible for this B.
+    parallel : bool, optional
+        If True (default), use the OpenMP path, which parallelizes counting and
+        materialization over all available cores (cap with ``OMP_NUM_THREADS``)
+        when built with ``LATTICEPTS_OPENMP=1``; in a serial build it is
+        equivalent to the serial kernel. If False, always use the single-threaded
+        serial kernel, e.g. as a single-thread baseline for benchmarking.
 
     Returns
     -------
@@ -130,20 +154,15 @@ def box_enum(B: int,
         trivial = ((2*B + 1)**(dim + 1) - 1) // (2*B)
         max_N_nodes = min(trivial, 9_200_000_000_000_000_000)  # cap at ~LONG_MAX
 
-    # call the C function
-    status = _box_enum_c_omp(
-        c_out,
-        &N_out,
-        &N_nodes,
-        dim,
-        B,
-        H_ptr,
-        rhs_ptr,
-        N_hyps,
-        max_N_out,
-        max_N_nodes,
-        1 if primitive else 0
-    );
+    # call the C kernel: parallel path by default; parallel=False forces serial
+    if parallel:
+        status = _box_enum_c_omp(
+            c_out, &N_out, &N_nodes, dim, B, H_ptr, rhs_ptr, N_hyps,
+            max_N_out, max_N_nodes, 1 if primitive else 0)
+    else:
+        status = _box_enum_c(
+            c_out, &N_out, &N_nodes, dim, B, H_ptr, rhs_ptr, N_hyps,
+            max_N_out, max_N_nodes, 1 if primitive else 0)
 
     # count-only dry run: no buffer to unpack, just return the tally
     if count_only:

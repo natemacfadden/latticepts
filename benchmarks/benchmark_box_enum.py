@@ -162,12 +162,13 @@ def run_normaliz(B):
     return pts
 
 
-def run_cpsat(B):
+def run_cpsat(B, num_workers=1):
     """
     Encode H @ x >= rhs and |x_i| <= B as a CP-SAT problem and enumerate
     all solutions via a callback
 
     Box constraints are implicit in the variable bounds [-B, B]
+    num_workers sets the CP-SAT search-worker count (1 = single-threaded)
     """
     # build model
     model = cp_model.CpModel()
@@ -211,116 +212,103 @@ if __name__ == "__main__":
                    if not flag]
         print(f"NI: {', '.join(missing)} not installed")
 
-    print(f"{'B':>3}  {'N':>8}  {'fill_frac':>9}  {'expl_frac':>9}  "
-          f"{'effic':>9}  {'box_enum':>11}  {'normaliz':>11}  {'cpsat':>11}")
-    print("-" * 85)
+    # Single-threaded comparison: each tool gets one thread, so none is helped
+    # or hurt by its own parallelism (thread scaling lives in benchmark_threads.py).
+    # latticepts uses parallel=False (serial kernel), CP-SAT num_workers=1, and
+    # Normaliz is pinned to 1 thread here -- independent of OMP_NUM_THREADS
+    if HAS_NORMALIZ:
+        PyNormaliz.NmzSetNumberOfNormalizThreads(1)
+
+    print(f"{'B':>3}  {'N':>9}  {'fill_frac':>9}  {'expl_frac':>9}  {'effic':>9}  "
+          f"{'box_enum':>11}  {'normaliz':>11}  {'cpsat':>11}")
+    print("-" * 90)
 
     skip_box      = None
     skip_normaliz = "NI" if not HAS_NORMALIZ else None
     skip_cpsat    = "NI" if not HAS_CPSAT    else None
 
-    plot_N          = []
-    plot_t_box      = []
-    plot_t_box_lo   = []
-    plot_t_box_hi   = []
-    plot_t_norm     = []
-    plot_t_norm_lo  = []
-    plot_t_norm_hi  = []
-    plot_t_cpsat    = []
-    plot_t_cpsat_lo = []
-    plot_t_cpsat_hi = []
+    # per-curve plot data: N (x), median time, and lo/hi for error bars
+    Ns  = {k: [] for k in ("box", "norm", "cpsat")}
+    ts  = {k: [] for k in ("box", "norm", "cpsat")}
+    los = {k: [] for k in ("box", "norm", "cpsat")}
+    his = {k: [] for k in ("box", "norm", "cpsat")}
 
     for B in range(1, 30+1):
         if all(s is not None for s in (skip_box, skip_normaliz, skip_cpsat)):
             break
 
+        # point count + node stats (same for every tool); count_only avoids a
+        # needless multi-GB materialize just to learn N
+        N, _, N_nodes_seen = box_enum(B=B, H=H, rhs=rhs, max_N_out=MAX_N_OUT,
+                                      max_N_nodes=MAX_N_NODES, count_only=True)
+        N_nodes_B = ((2*B + 1)**(dim + 1) - 1) // (2*B)
+        fill_fraction = N / (2*B + 1)**dim
+        exploration_fraction = N_nodes_seen / N_nodes_B
+        N_nodes_dense = (sum(N**(k/dim) for k in range(dim + 1)) if N > 0 else 0.0)
+        efficiency = N_nodes_dense / N_nodes_seen if N_nodes_seen > 0 else 0.0
+
+        # latticepts, single-threaded (parallel=False -> the serial kernel)
         if skip_box is None:
-            # one call for the point count + node stats, then timed repeats
-            out, status, N_nodes_seen = box_enum(
-                B=B, H=H, rhs=rhs, max_N_out=MAX_N_OUT, max_N_nodes=MAX_N_NODES)
-            elapsed, lo, hi = timed_median(
-                box_enum, B=B, H=H, rhs=rhs,
-                max_N_out=MAX_N_OUT, max_N_nodes=MAX_N_NODES)
-            N = out.shape[0]
-            N_nodes_B = ((2*B + 1)**(dim + 1) - 1) // (2*B)
-            fill_fraction = N / (2*B + 1)**dim
-            exploration_fraction = N_nodes_seen / N_nodes_B
-            N_nodes_dense = (sum(N**(k/dim) for k in range(dim + 1))
-                             if N > 0 else 0.0)
-            efficiency = N_nodes_dense / N_nodes_seen if N_nodes_seen > 0 else 0.0
-            t_box = _fmt(elapsed)
-            n_str  = f"{N:>8}"
-            cw_str = f"{fill_fraction:>9.2e}"
-            fd_str = f"{exploration_fraction:>9.2e}"
-            ef_str = f"{efficiency:>9.2e}"
-            plot_N.append(N)
-            plot_t_box.append(elapsed)
-            plot_t_box_lo.append(lo)
-            plot_t_box_hi.append(hi)
-            if elapsed > TIMEOUT:
+            e, lo, hi = timed_median(box_enum, B=B, H=H, rhs=rhs,
+                                     max_N_out=MAX_N_OUT, max_N_nodes=MAX_N_NODES,
+                                     parallel=False)
+            Ns["box"].append(N); ts["box"].append(e)
+            los["box"].append(lo); his["box"].append(hi)
+            t_box = _fmt(e)
+            if e > TIMEOUT:
                 skip_box = "TO"
         else:
             t_box = _skip_fmt(skip_box)
-            n_str  = f"{'TO':>8}"
-            cw_str = f"{'':>9}"
-            fd_str = f"{'':>9}"
-            ef_str = f"{'':>9}"
 
         if skip_normaliz is None:
-            elapsed_norm, lo, hi = timed_median(run_normaliz, B)
-            t_normaliz = _fmt(elapsed_norm)
-            plot_t_norm.append(elapsed_norm)
-            plot_t_norm_lo.append(lo)
-            plot_t_norm_hi.append(hi)
-            if elapsed_norm > TIMEOUT:
+            e, lo, hi = timed_median(run_normaliz, B)
+            Ns["norm"].append(N); ts["norm"].append(e)
+            los["norm"].append(lo); his["norm"].append(hi)
+            t_norm = _fmt(e)
+            if e > TIMEOUT:
                 skip_normaliz = "TO"
         else:
-            t_normaliz = _skip_fmt(skip_normaliz)
+            t_norm = _skip_fmt(skip_normaliz)
 
         if skip_cpsat is None:
-            elapsed_cp, lo, hi = timed_median(run_cpsat, B)
-            t_cpsat = _fmt(elapsed_cp)
-            plot_t_cpsat.append(elapsed_cp)
-            plot_t_cpsat_lo.append(lo)
-            plot_t_cpsat_hi.append(hi)
-            if elapsed_cp > TIMEOUT:
+            e, lo, hi = timed_median(run_cpsat, B)
+            Ns["cpsat"].append(N); ts["cpsat"].append(e)
+            los["cpsat"].append(lo); his["cpsat"].append(hi)
+            t_cpsat = _fmt(e)
+            if e > TIMEOUT:
                 skip_cpsat = "TO"
         else:
             t_cpsat = _skip_fmt(skip_cpsat)
 
-        print(f"{B:>3}  {n_str}  {cw_str}  {fd_str}  {ef_str}  "
-              f"{t_box}  {t_normaliz}  {t_cpsat}")
+        print(f"{B:>3}  {N:>9}  {fill_fraction:>9.2e}  {exploration_fraction:>9.2e}  "
+              f"{efficiency:>9.2e}  {t_box}  {t_norm}  {t_cpsat}")
 
     # =============================================================================
     # Plot
     # =============================================================================
 
-    if HAS_MPL and plot_N:
+    if HAS_MPL and ts["box"]:
         fig, ax = plt.subplots(figsize=(7, 4))
 
         def _yerr(med, lo, hi):
-            med = np.asarray(med)
-            return [med - np.asarray(lo), np.asarray(hi) - med]
+            med = np.asarray(med, dtype=float)
+            return [med - np.asarray(lo, dtype=float),
+                    np.asarray(hi, dtype=float) - med]
 
-        ax.errorbar(plot_N, plot_t_box,
-                    yerr=_yerr(plot_t_box, plot_t_box_lo, plot_t_box_hi),
-                    fmt='o-', color='steelblue', capsize=3,
-                    label='latticepts (box_enum)')
-        if plot_t_norm:
-            n = len(plot_t_norm)
-            ax.errorbar(plot_N[:n], plot_t_norm,
-                        yerr=_yerr(plot_t_norm, plot_t_norm_lo, plot_t_norm_hi),
-                        fmt='s--', color='tomato', capsize=3, label='Normaliz')
-        if plot_t_cpsat:
-            n = len(plot_t_cpsat)
-            ax.errorbar(plot_N[:n], plot_t_cpsat,
-                        yerr=_yerr(plot_t_cpsat, plot_t_cpsat_lo, plot_t_cpsat_hi),
-                        fmt='^--', color='goldenrod', capsize=3, label='CP-SAT')
+        def _curve(key, fmt, color, label):
+            if ts[key]:
+                ax.errorbar(Ns[key], ts[key],
+                            yerr=_yerr(ts[key], los[key], his[key]),
+                            fmt=fmt, color=color, capsize=3, label=label)
+
+        _curve("box",   'o-',  'steelblue', 'latticepts')
+        _curve("norm",  's--', 'tomato',    'Normaliz')
+        _curve("cpsat", '^--', 'goldenrod', 'CP-SAT')
 
         ax.set_xlabel('N')
         ax.set_ylabel('time (s)')
         ax.set_title('Lattice point enumeration: latticepts vs reference solvers\n'
-                     'Manwe, 7d example from arXiv:2406.13751')
+                     '(single-threaded; Manwe 7d example, arXiv:2406.13751)')
         ax.set_xscale('log')
         ax.set_yscale('log')
         ax.legend()

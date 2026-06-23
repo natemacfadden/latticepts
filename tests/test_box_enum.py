@@ -221,6 +221,30 @@ def test_counts(name, rhs_val):
 
 @pytest.mark.parametrize("name", COMPARISON_CASES)
 @pytest.mark.parametrize("rhs_val", RHS_VALUES)
+def test_parallel_matches_serial(name, rhs_val):
+    # The OpenMP path (parallel=True) must agree with the serial kernel
+    # (parallel=False): identical count/status and byte-identical materialized
+    # points. In a non-OpenMP build the two share a code path, so this is a no-op
+    # there; in an OpenMP build it guards the parallel implementation
+    c = TEST_CASES[name]
+    B = min(c["B"], COMPARISON_B)
+
+    cnt_par, st_par, _ = box_enum(B=B, H=c["H"], rhs=rhs_val, max_N_out=MAX_N_OUT,
+                                  max_N_nodes=MAX_N_NODES, count_only=True, parallel=True)
+    cnt_ser, st_ser, _ = box_enum(B=B, H=c["H"], rhs=rhs_val, max_N_out=MAX_N_OUT,
+                                  max_N_nodes=MAX_N_NODES, count_only=True, parallel=False)
+    assert (cnt_par, st_par) == (cnt_ser, st_ser)
+
+    out_par, mst_par, _ = box_enum(B=B, H=c["H"], rhs=rhs_val, max_N_out=MAX_N_OUT,
+                                   max_N_nodes=MAX_N_NODES, parallel=True)
+    out_ser, mst_ser, _ = box_enum(B=B, H=c["H"], rhs=rhs_val, max_N_out=MAX_N_OUT,
+                                   max_N_nodes=MAX_N_NODES, parallel=False)
+    assert mst_par == mst_ser
+    np.testing.assert_array_equal(out_par, out_ser)
+
+
+@pytest.mark.parametrize("name", COMPARISON_CASES)
+@pytest.mark.parametrize("rhs_val", RHS_VALUES)
 @pytest.mark.skipif(not HAS_NORMALIZ, reason="PyNormaliz not installed")
 def test_vs_normaliz(name, rhs_val):
     c = TEST_CASES[name]
