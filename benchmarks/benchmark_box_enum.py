@@ -185,6 +185,7 @@ def run_cpsat(B, num_workers=1):
 
     solver = cp_model.CpSolver()
     solver.parameters.enumerate_all_solutions = True
+    solver.parameters.num_workers = num_workers
     solver.solve(model, _Collector())
 
     if not solutions:

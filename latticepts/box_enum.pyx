@@ -81,7 +81,7 @@ def box_enum(B: int,
         (no hyperplane constraints), i.e. the maximum possible for this B.
     parallel : bool, optional
         If True (default), use the OpenMP path, which parallelizes counting and
-        materialization over all available cores (cap with ``OMP_NUM_THREADS``)
+        materialization over all available threads (cap with ``OMP_NUM_THREADS``)
         when built with ``LATTICEPTS_OPENMP=1``; in a serial build it is
         equivalent to the serial kernel. If False, always use the single-threaded
         serial kernel, e.g. as a single-thread baseline for benchmarking.
@@ -127,8 +127,21 @@ def box_enum(B: int,
 
     # allocate output arrays (count_only -> no buffer; kernel just tallies)
     cdef int32_t *c_out = NULL
+    cdef size_t n_elem, n_bytes
     if not count_only:
-        c_out = <int32_t *>malloc(max_N_out * dim * sizeof(int32_t))
+        # guard the allocation: max_N_out * dim * sizeof(int32_t) is computed in
+        # size_t and can wrap to a near-zero malloc, after which the kernel writes
+        # out of bounds (a wrapped-to-0 size is non-NULL on glibc, so the check
+        # below would not catch it)
+        if max_N_out <= 0:
+            raise ValueError("max_N_out must be positive")
+        n_elem = <size_t>max_N_out * <size_t>dim
+        if dim > 0 and n_elem // <size_t>dim != <size_t>max_N_out:
+            raise MemoryError("max_N_out * dim overflows size_t")
+        n_bytes = n_elem * sizeof(int32_t)
+        if n_bytes // sizeof(int32_t) != n_elem:
+            raise MemoryError("output buffer size overflows size_t")
+        c_out = <int32_t *>malloc(n_bytes)
         if c_out == NULL:
             raise MemoryError("Failed to allocate c_out")
 

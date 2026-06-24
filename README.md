@@ -3,7 +3,7 @@
 
 [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.19405318.svg)](https://doi.org/10.5281/zenodo.19405318)
 
-Fast lattice point enumeration for convex polyhedra. A C/Cython implementation of Kannan's algorithm, significantly outperforming Normaliz and OR-Tools CP-SAT in speed for certain problems. To demonstrate the performance, `latticepts` materializes ~108M lattice points in the strict interior of an example 7D cone (['Manwe'](https://arxiv.org/abs/2406.13751)) in ~15s single-threaded, or ~7.7s on 12 cores on a Intel Core i5-10600K (4.1 GHz, 16 GB RAM, Ubuntu 24.04). We can also just count points, which is quicker.
+Fast lattice point enumeration for convex polyhedra. A C/Cython implementation of Kannan's algorithm, significantly outperforming Normaliz and OR-Tools CP-SAT in speed for certain problems. To demonstrate the performance, `latticepts` materializes ~108M lattice points in the strict interior of an example 7D cone (['Manwe'](https://arxiv.org/abs/2406.13751)) in ~15s single-threaded, or ~7.7s on 12 threads on an Intel Core i5-10600K (4.1 GHz, 16 GB RAM, Ubuntu 24.04). We can also just count points, which is quicker.
 
 **Used by** [CYTools](https://cy.tools/) and [Macaulay2](https://macaulay2.com/) (see [here](https://github.com/Macaulay2/M2/blob/c2aa530f2c1de5e3eb76c2dc8e7663b03697b179/M2/Macaulay2/e/cytools/README.md?plain=1#L12)).
 
@@ -54,7 +54,7 @@ The two build flags are independent and compose; for the fastest build, set both
 LATTICEPTS_NATIVE=1 LATTICEPTS_OPENMP=1 pip install -e .
 ```
 
-Counting parallelizes well -- ~6x on 12 cores when there are many top-level branches (latticepts splits the search across the top coordinate's values, so that count caps the speedup); materializing gains less (~2x: its two-pass count-then-fill is more memory-bound), and the thread-startup overhead can make the serial path (`parallel=False`) faster for small outputs. No extra memory either way: counting holds only each thread's small `O(N_hyps * dim)` search state, and materializing fills disjoint slices of the single output buffer (no per-thread copies). See [the benchmarks](#benchmarks) for thread-scaling plots.
+Counting parallelizes well -- ~6x on 12 threads when there are many top-level branches (latticepts splits the search across the top coordinate's values, so that count caps the speedup); materializing gains less (~2x: its two-pass count-then-fill is more memory-bound), and the thread-startup overhead can make the serial path (`parallel=False`) faster for small outputs. No extra memory either way: counting holds only each thread's small `O(N_hyps * dim)` search state, and materializing fills disjoint slices of the single output buffer (no per-thread copies). See [the benchmarks](#benchmarks) for thread-scaling plots.
 
 ## Algorithm Notes
 
@@ -88,10 +88,10 @@ The three comparison benchmarks below are **single-threaded** -- each tool is gi
   <img src="https://raw.githubusercontent.com/natemacfadden/latticepts/main/docs/benchmark_dim.png" alt="Runtime vs dimension for the length-2 hypercube"/>
 </p>
 
-**Thread scaling:** latticepts also parallelizes (build with `LATTICEPTS_OPENMP=1`; the comparison plots above use the single-threaded serial path). It splits the search across the top coordinate's values, so the number of top-level branches caps the speedup. On a bounded cube $|x_i|\leq 10$ in 6D (~86M points, 21 top-level branches, the parallelization achieves ~6x speedup for counting the points and ~2x speedup for materializing them. Parallelization was often counterproductive (slower) for Normaliz and CP-SAT.
+**Thread scaling:** latticepts also parallelizes (build with `LATTICEPTS_OPENMP=1`; the comparison plots above use the single-threaded serial path). It splits the search across the top coordinate's values, so the number of top-level branches caps the speedup. On a bounded cube $|x_i|\leq 10$ in 6D (~86M points, 21 top-level branches), the parallelization achieves ~6x speedup for counting the points and ~2x speedup for materializing them, both on 12 threads. Parallelization was often counterproductive (slower) for Normaliz and CP-SAT.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/natemacfadden/latticepts/main/docs/benchmark_threads.png" alt="latticepts thread scaling on a bounded cube: counting ~6x on 6 cores, materializing ~2x"/>
+  <img src="https://raw.githubusercontent.com/natemacfadden/latticepts/main/docs/benchmark_threads.png" alt="latticepts thread scaling on a bounded cube: counting ~6x on 12 threads, materializing ~2x"/>
 </p>
 
 ## Usage
