@@ -7,20 +7,6 @@ Fast lattice point enumeration for convex polyhedra. A C/Cython implementation o
 
 **Used by** [CYTools](https://cy.tools/) and [Macaulay2](https://macaulay2.com/) (see [here](https://github.com/Macaulay2/M2/blob/c2aa530f2c1de5e3eb76c2dc8e7663b03697b179/M2/Macaulay2/e/cytools/README.md?plain=1#L12)).
 
-## Citation
-
-If you use `latticepts` in your research, please cite it:
-
-```bibtex
-@software{latticepts,
-  author  = {MacFadden, Nate},
-  title   = {latticepts},
-  doi     = {10.5281/zenodo.19405318},
-  url     = {https://github.com/natemacfadden/latticepts},
-  orcid   = {0000-0002-8481-3724},
-}
-```
-
 ## Description
 
 More explicitly, `latticepts` enumerates lattice points
@@ -152,6 +138,20 @@ B   = 42
 
 # one can then get the lattice points via:
 pts, status, N_nodes = box_enum(B=B, H=H, rhs=rhs, max_N_out=10_000)
+```
+
+## Citation
+
+If you use `latticepts` in your research, please cite it:
+
+```bibtex
+@software{latticepts,
+  author  = {MacFadden, Nate},
+  title   = {latticepts},
+  doi     = {10.5281/zenodo.19405318},
+  url     = {https://github.com/natemacfadden/latticepts},
+  orcid   = {0000-0002-8481-3724},
+}
 ```
 
 ## Organization
