@@ -109,10 +109,10 @@ def kannan_box_mat_njit(
     # -----------------------
     abssum = np.empty((linmat.shape[0],linmat.shape[1]+1), np.int64)
     for j in range(abssum.shape[0]):
-        abssum[j,0] = 0#abs(linmat[j,0])
+        abssum[j,0] = 0
 
         for i in range(dim):
-            abssum[j,i+1] = abssum[j,i] + abs(abs(linmat[j,i]))
+            abssum[j,i+1] = abssum[j,i] + abs(linmat[j,i])
 
     # stack variables
     # ---------------

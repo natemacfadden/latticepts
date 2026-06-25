@@ -22,7 +22,7 @@ N_out : long*
 N_nodes : long*
     Written with the number of nodes visited in the search tree (including
     the root). For N_hyps=0 (no hyperplane constraints) this equals
-    ((2B+1)^(n+1)-1)/(2B).
+    ((2B+1)^(dim+1)-1)/(2B).
 dim : int
     Dimension of the problem.
 B : int
@@ -41,6 +41,8 @@ max_N_out : long
 max_N_nodes : long
     Maximum number of search tree nodes to visit. Enumeration stops early
     if reached.
+primitive : int
+    If nonzero, keep only primitive lattice points (gcd of components == 1).
 
 Returns
 -------
@@ -211,7 +213,6 @@ static inline int set_bounds(
     stack_val_min[sp] = lo;
     stack_val_len[sp] = num;
 
-    // debug print statement
     DEBUG_LOG("Set bounds for %d to %d->%d+%d\n", sp, lo, lo, num);
 
     return num;
@@ -319,7 +320,6 @@ int _box_enum_c(
         i    = stack_i[sp];
         pos  = stack_pos[sp];
 
-        // debug print statement
         DEBUG_LOG("Setting component-%d for op=%ld, sp=%d, pos=%d\n",
                   i, op, sp, pos);
 

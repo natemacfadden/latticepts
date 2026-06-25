@@ -39,3 +39,18 @@ jobs:
       # memory-unsafe C hot path, no Cython-generated-C noise) and run the test.
       - name: Build + run C-kernel test
         run: make -C tests/c test EXTRA_CFLAGS=-Werror
+
+  openmp:
+    name: OpenMP build + parallel test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # build the OpenMP path so test_parallel_matches_serial actually exercises
+      # it (the default build is serial, leaving that test a no-op in CI)
+      - name: Install (OpenMP build)
+        run: pip install numpy cython && LATTICEPTS_OPENMP=1 pip install -e ".[test]"
+      - name: Test
+        run: pytest tests/
