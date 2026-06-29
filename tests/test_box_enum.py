@@ -15,6 +15,8 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # =============================================================================
 
+import itertools
+
 import numpy as np
 import pytest
 
@@ -295,3 +297,26 @@ def test_zero_row_feasible():
     out, status, _ = box_enum(B=2, H=H, rhs=0, max_N_out=MAX_N_OUT)
     assert status == 0 and out.shape[0] > 0
     assert (H @ out.T >= 0).all()
+
+
+# large coefficients are outside the advertised small-coefficient range, but
+# must never silently undercount: a derived bound exceeding ~2^31 was once
+# narrowed by an (int)v cast in box_enum.h, truncating it (e.g. it sent -4e9 to
+# +2.9e8) and pruning valid subtrees while still reporting status 0; each case
+# below pushes a bound past 2^31, checked against an independent brute force
+
+@pytest.mark.parametrize("H, rhs, B, dim", [
+    (np.array([[2_000_000_000, 1], [1, 2_000_000_000]], dtype=np.int32),
+     -2_000_000_000, 6, 2),
+    (np.array([[2_000_000_000, 2_000_000_000, 1]], dtype=np.int32), 7, 4, 3),
+])
+def test_large_coefficient_no_undercount(H, rhs, B, dim):
+    out, status, _ = box_enum(B=B, H=H, rhs=rhs, max_N_out=1_000_000)
+    assert status == 0
+    # int64 oracle: the bound math itself must survive coefficients this large
+    brute = np.array(
+        [p for p in itertools.product(range(-B, B + 1), repeat=dim)
+         if np.all(H.astype(np.int64) @ np.array(p, np.int64) >= rhs)],
+        dtype=np.int32,
+    )
+    np.testing.assert_array_equal(_sort_rows(out), _sort_rows(brute))

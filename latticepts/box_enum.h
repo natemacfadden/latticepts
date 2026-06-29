@@ -189,19 +189,23 @@ static inline int set_bounds(
 
         // |numer| <= |rhs| + B*sum|H[j]| stays under 2^53 for any feasible
         // box, so the double ceil/floor is exact and ~1.5x faster than int64
-        // division on this hot path; guard the rare adversarial |numer| >= 2^53
-        // case with an exact integer fallback so the bound is never off-by-one
+        // division on this hot path; the pathological |numer| >= 2^53 case uses an
+        // exact int64 fallback, which keeps the division exact, but the
+        // resulting int64 bound v can still exceed the int range (~2^31) for
+        // large coefficients, so v is clamped into [lo, hi] before the
+        // narrowing (int) cast below; a raw (int)v would wrap (e.g. it sends
+        // -4e9 to +2.9e8) and silently prune valid subtrees
         const int64_t FP_EXACT = ((int64_t)1 << 53);
         if (h>0){
             int64_t v = (numer >= -FP_EXACT && numer <= FP_EXACT)
                         ? (int64_t)ceil((double)numer/h)
                         : ceil_div_i64(numer, (int64_t)h);
-            lo = max_int(lo, v > (int64_t)hi ? hi + 1 : (int)v);
+            lo = max_int(lo, v > (int64_t)hi ? hi + 1 : (v < (int64_t)lo ? lo : (int)v));
         } else {
             int64_t v = (numer >= -FP_EXACT && numer <= FP_EXACT)
                         ? (int64_t)floor((double)numer/h)
                         : floor_div_i64(numer, (int64_t)h);
-            hi = min_int(hi, v < (int64_t)lo ? lo - 1 : (int)v);
+            hi = min_int(hi, v < (int64_t)lo ? lo - 1 : (v > (int64_t)hi ? hi : (int)v));
         }
     }
 
