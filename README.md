@@ -73,25 +73,25 @@ The three comparison benchmarks below are **single-threaded** -- each tool is gi
 **Convex cones:** runtime vs requested number of interior lattice points in a cone (i.e., not on the boundary). The cone studied is the 7D 'Manwe' from https://arxiv.org/abs/2406.13751:
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/natemacfadden/latticepts/main/docs/benchmark_box_enum.png" alt="Runtime vs N on the Manwe example: latticepts outperforms PyNormaliz and OR-Tools CP-SAT"/>
+  <img src="docs/benchmark_box_enum.png" alt="Runtime vs N on the Manwe example: latticepts outperforms PyNormaliz and OR-Tools CP-SAT"/>
 </p>
 
 **Polytopes:** runtime to enumerate all contained lattice points for various 4D reflexive polytopes. Size of the polytope is measured by h11 with one polytope per h11 value, h11 = 6..491:
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/natemacfadden/latticepts/main/docs/benchmark_h11.png" alt="Runtime vs h11 for 4D reflexive polytopes"/>
+  <img src="docs/benchmark_h11.png" alt="Runtime vs h11 for 4D reflexive polytopes"/>
 </p>
 
 **More polytopes:** runtime vs dimension of length-2 hypercubes $[0,2]^{dim}$ for dim = 2..14:
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/natemacfadden/latticepts/main/docs/benchmark_dim.png" alt="Runtime vs dimension for the length-2 hypercube"/>
+  <img src="docs/benchmark_dim.png" alt="Runtime vs dimension for the length-2 hypercube"/>
 </p>
 
 **Thread scaling:** latticepts also parallelizes (build with `LATTICEPTS_OPENMP=1`; the comparison plots above use the single-threaded serial path). It splits the search across the top coordinate's values, so the number of top-level branches caps the speedup. On a bounded cube $|x_i|\leq 10$ in 6D (~86M points, 21 top-level branches), the parallelization achieves ~6x speedup for counting the points and ~2x speedup for materializing them, both on 12 threads. Parallelization was often counterproductive (slower) for Normaliz and CP-SAT.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/natemacfadden/latticepts/main/docs/benchmark_threads.png" alt="latticepts thread scaling on a bounded cube: counting ~6x on 12 threads, materializing ~2x"/>
+  <img src="docs/benchmark_threads.png" alt="latticepts thread scaling on a bounded cube: counting ~6x on 12 threads, materializing ~2x"/>
 </p>
 
 ## Usage
