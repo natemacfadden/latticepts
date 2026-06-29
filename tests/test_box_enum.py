@@ -320,3 +320,26 @@ def test_large_coefficient_no_undercount(H, rhs, B, dim):
         dtype=np.int32,
     )
     np.testing.assert_array_equal(_sort_rows(out), _sort_rows(brute))
+
+
+# cheap structural invariants the count-only path cannot check: every returned
+# point is feasible (H @ x >= rhs) and inside the box (|x|_inf <= B), the rows
+# are unique, and the count-only total equals the materialized set size
+
+@pytest.mark.parametrize("name", COMPARISON_CASES)
+@pytest.mark.parametrize("rhs_val", RHS_VALUES)
+def test_output_invariants(name, rhs_val):
+    c = TEST_CASES[name]
+    B = min(c["B"], COMPARISON_B)
+    H = c["H"]
+
+    out, status, _ = box_enum(B=B, H=H, rhs=rhs_val, max_N_out=MAX_N_OUT,
+                              max_N_nodes=MAX_N_NODES, count_only=False)
+    assert status == 0
+    assert np.all(H.astype(np.int64) @ out.astype(np.int64).T >= rhs_val)
+    assert np.all(np.abs(out) <= B)
+    assert len(np.unique(out, axis=0)) == len(out)
+
+    count, cstatus, _ = box_enum(B=B, H=H, rhs=rhs_val, max_N_out=MAX_N_OUT,
+                                 max_N_nodes=MAX_N_NODES, count_only=True)
+    assert cstatus == 0 and count == len(out)
