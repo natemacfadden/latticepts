@@ -32,8 +32,3 @@ On macOS and Linux, pip pulls a prebuilt wheel that bundles the [Normaliz](https
 pip install ortools
 ```
 
-### SageMath
-```
-pip install sagemath
-```
-
