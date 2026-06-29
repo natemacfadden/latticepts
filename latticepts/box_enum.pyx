@@ -100,6 +100,15 @@ def box_enum(B: int,
     N_nodes : int
         Number of search tree nodes visited (including the root), where
         N_nodes = N_iterations + 1.
+
+    Notes
+    -----
+    Under truncation (status ``-2``, when the feasible set exceeds
+    ``max_N_out``) only the returned count and status are guaranteed equal
+    across the serial and parallel paths; the specific points may differ. The
+    serial kernel emits the first ``max_N_out`` points in DFS order, the OpenMP
+    path in per-branch order. Size the buffer to the full count (e.g. a
+    ``count_only`` pass, then fill) to get the complete, path-independent set.
     """
     # read some inputs
     cdef int dim    = H.shape[1]
