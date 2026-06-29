@@ -39,7 +39,7 @@ def enum_lattice_points(
     min_efficiency: float = 1e-6,
     count_only: bool = False,
     verbosity: int = 0,
-    max_N_out: "int | None" = None) -> np.ndarray:
+    max_N_out: "int | None" = None) -> "np.ndarray | tuple[int, int]":
     """
     Generate (optionally primitive) lattice points in
         {x in Z^dim : H @ x >= rhs}
@@ -80,7 +80,9 @@ def enum_lattice_points(
     -------
     pts : ndarray of shape (N, dim)
         Lattice points satisfying H @ x >= rhs, where N >= `min_N_pts`
-        unless max_B was reached.
+        unless max_B was reached. With `count_only=True`, instead returns a
+        `(B, N)` tuple of ints: the box half-width B reached and the point
+        count N (no points are materialized).
     """
     if min_N_pts <= 0:
         raise ValueError(f"min_N_pts must be > 0, got {min_N_pts}.")
