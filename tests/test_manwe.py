@@ -34,6 +34,12 @@ try:
 except ImportError:
     HAS_CPSAT = False
 
+try:
+    import pytest_benchmark
+    HAS_BENCHMARK = True
+except ImportError:
+    HAS_BENCHMARK = False
+
 # =============================================================================
 # Hard-coded 'Manwe' data (from https://arxiv.org/abs/2406.13751)
 # Extracted from CYTools.
@@ -188,6 +194,7 @@ def test_manwe_vs_cpsat(rhs_val):
 # Benchmarks
 # =============================================================================
 
+@pytest.mark.skipif(not HAS_BENCHMARK, reason="pytest-benchmark not installed")
 def test_bench_box_enum(benchmark):
     benchmark(box_enum, B=10, H=H, rhs=1,
               max_N_out=MAX_N_OUT, max_N_nodes=MAX_N_NODES)
