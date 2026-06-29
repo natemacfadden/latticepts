@@ -109,6 +109,13 @@ def box_enum(B: int,
     serial kernel emits the first ``max_N_out`` points in DFS order, the OpenMP
     path in per-branch order. Size the buffer to the full count (e.g. a
     ``count_only`` pass, then fill) to get the complete, path-independent set.
+
+    The parallel path also does not early-exit: it enumerates every branch
+    fully and applies the ``max_N_out`` / ``max_N_nodes`` caps afterward, while
+    the serial path bails as soon as a cap is hit. So ``N_nodes`` reflects the
+    full search under ``parallel=True`` and the truncated search under
+    ``parallel=False`` (they differ), and a tight ``max_N_nodes`` does not abort
+    early in parallel. The count and status code still agree.
     """
     # read some inputs
     cdef int dim    = H.shape[1]

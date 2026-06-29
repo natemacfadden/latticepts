@@ -19,7 +19,11 @@
 
 #include "box_enum.h"   // _box_enum_c, set_bounds, the i64 div helpers, types
 
-// Drop-in replacement for _box_enum_c with identical results and status codes;
+// near-drop-in for _box_enum_c: same point count and status code (and same
+// point set except under truncation), but it does not early-exit; it
+// enumerates every branch fully and applies the max_N_out / max_N_nodes caps
+// afterward, so N_nodes reflects the full search (the serial path bails early
+// and reports fewer) and a tight max_N_nodes will not abort a call here;
 // built with -fopenmp, both counting (out == NULL) and materialization run in
 // parallel over the independent top-level branches; materialization uses a
 // two-pass count-then-fill so each branch writes a disjoint output slice, while
