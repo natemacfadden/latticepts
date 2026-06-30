@@ -86,6 +86,9 @@ def box_enum(B: int,
         output buffer is allocated) and return the true count. ``max_N_out``
         is ignored in this mode; bound the search with ``max_N_nodes``
         (status -3) if needed.
+    primitive : bool, optional
+        If True, return only primitive vectors (GCD of |components| == 1).
+        Defaults to False.
     parallel : bool, optional
         If True (default), use the OpenMP path, which parallelizes counting and
         materialization over all available threads (cap with ``OMP_NUM_THREADS``)

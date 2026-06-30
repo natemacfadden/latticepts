@@ -65,6 +65,9 @@ def enum_lattice_points(
         N_nodes_dense = sum_{k=0}^{dim} min_N_pts^{k/dim} is the node count
         for N_hyps=0 (no hyperplane constraints). r=1 tolerates only a
         fully dense box; r=0 imposes no limit. Defaults to 1e-6.
+    count_only : bool, optional
+        If True, do not materialize the points; return a ``(B, N)`` tuple of
+        the box half-width B reached and the point count N. Defaults to False.
     verbosity : int, optional
         The verbosity level. >= 1 prints per-iteration diagnostics
         (fill_fraction, exploration_fraction, efficiency). >= 2 also prints
@@ -248,6 +251,17 @@ def min_B_for(H, rhs, min_N_pts, primitive, max_B=10_000, verbosity=0):
     """
     Dry run: determine the smallest box size B such that enum_lattice_points
     generates min_N_pts lattice points.
+
+    Parameters
+    ----------
+    H, rhs, min_N_pts, primitive, max_B, verbosity
+        See :func:`enum_lattice_points` -- identical meaning.
+
+    Returns
+    -------
+    (B, N) : tuple of int
+        The smallest box half-width B that yields at least min_N_pts points,
+        and the resulting point count N.
     """
     return enum_lattice_points(H, rhs, min_N_pts, primitive=primitive,
                                max_B=max_B, count_only=True,
