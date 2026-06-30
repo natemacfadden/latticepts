@@ -215,10 +215,11 @@ int _box_enum_c_omp(
         free(cnt);
     }
 
-    // truncation + status match the serial kernel exactly
-    *N_out = (total > max_N_out) ? max_N_out : total;
+    // max_N_out bounds the output buffer only; count-only (out == NULL) has no
+    // buffer, so report the true total and never flag -2 truncation there.
+    *N_out = (out != NULL && total > max_N_out) ? max_N_out : total;
     int status = 0;
-    if (total > max_N_out)      status = -2;
+    if (out != NULL && total > max_N_out) status = -2;
     if (*N_nodes > max_N_nodes) status = -3;
     return status;
 }

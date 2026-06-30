@@ -73,12 +73,19 @@ def box_enum(B: int,
         Right-hand side of the hyperplane constraints. A scalar is broadcast
         to all constraints (i.e. ``H @ vec >= rhs`` uniformly).
     max_N_out : long
-        Maximum number of output vectors allowed.
+        Maximum number of output vectors to materialize (the output-buffer
+        size). Bounds materialization only; with ``count_only=True`` it does
+        not cap the returned count.
     max_N_nodes : long, optional
         Maximum number of search tree nodes to visit (where N_nodes =
         N_iterations + 1, counting the root). Defaults to
         ``((2*B+1)**(dim+1) - 1) // (2*B)``, the node count for N_hyps=0
         (no hyperplane constraints), i.e. the maximum possible for this B.
+    count_only : bool, optional
+        If True, tally the feasible points without materializing them (no
+        output buffer is allocated) and return the true count. ``max_N_out``
+        is ignored in this mode; bound the search with ``max_N_nodes``
+        (status -3) if needed.
     parallel : bool, optional
         If True (default), use the OpenMP path, which parallelizes counting and
         materialization over all available threads (cap with ``OMP_NUM_THREADS``)

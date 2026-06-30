@@ -341,7 +341,9 @@ int _box_enum_c(
                 if (g != 1) { sp--; continue; }   // not primitive: skip (don't count/emit)
             }
 
-            if (op >= max_N_out) {
+            // max_N_out bounds the output buffer only; in count-only mode
+            // (out == NULL) there is no buffer, so never truncate the tally.
+            if (out != NULL && op >= max_N_out) {
                 status = -2;
                 goto end;
             }

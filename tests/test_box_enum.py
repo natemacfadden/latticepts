@@ -343,3 +343,19 @@ def test_output_invariants(name, rhs_val):
     count, cstatus, _ = box_enum(B=B, H=H, rhs=rhs_val, max_N_out=MAX_N_OUT,
                                  max_N_nodes=MAX_N_NODES, count_only=True)
     assert cstatus == 0 and count == len(out)
+
+
+def test_count_only_reports_true_count_regardless_of_max_N_out():
+    # one always-satisfied constraint -> the full box of (2B+1)**dim points
+    B = 3
+    H = np.array([[1, 0]], dtype=np.int32)      # x0 >= -B, always true
+    full = (2 * B + 1) ** 2                      # 49
+    # count_only must NOT be capped by max_N_out (regression: returned 2 / -2)
+    for parallel in (False, True):
+        cnt, st, _ = box_enum(B=B, H=H, rhs=-B, max_N_out=2,
+                              count_only=True, parallel=parallel)
+        assert st == 0, f"count_only flagged truncation (parallel={parallel})"
+        assert cnt == full, f"count truncated to {cnt}, expected {full}"
+    # materializing with a small buffer MUST still truncate (cap unchanged)
+    out, st, _ = box_enum(B=B, H=H, rhs=-B, max_N_out=2, count_only=False)
+    assert st == -2 and out.shape[0] == 2
