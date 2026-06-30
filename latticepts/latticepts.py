@@ -27,8 +27,9 @@ import warnings
 
 from numpy.typing import ArrayLike
 
-# local imports
-from . import box_enum
+# local imports (import the function explicitly, not the submodule, so type
+# checkers resolve box_enum to the callable rather than the module)
+from .box_enum import box_enum
 
 def enum_lattice_points(
     H: ArrayLike,
@@ -94,6 +95,7 @@ def enum_lattice_points(
     dry_running = count_only or (max_N_out is None)
     if dry_running:
         max_N_out = 2**62 # effectively uncapped
+    assert max_N_out is not None  # None implies dry_running, capped just above
 
     H = np.asarray(H, dtype=np.int32)
     dim = H.shape[1]
@@ -144,8 +146,9 @@ def enum_lattice_points(
             primitive=primitive,
         )
 
-        pts = None if dry_running else _res
-        N = _res if dry_running else len(pts) # points found in this box
+        # N: how many points this box has -- the count directly on a count-only
+        # dry run, or the length of the materialized array otherwise.
+        N = _res if dry_running else len(_res)
         if verbosity >= 1:
             N_nodes_B = ((2*B + 1)**(dim + 1) - 1) // (2*B)
             fill_fraction = N / (2*B + 1)**dim
@@ -173,7 +176,7 @@ def enum_lattice_points(
         # when materializing during the search (caller supplied max_N_out), keep
         # the largest point set found across the B iterations
         if not dry_running and N > len(best_pts):
-            best_pts = pts
+            best_pts = _res  # == pts here; _res keeps mypy from seeing Optional
 
         # check if done
         if N >= min_N_pts:

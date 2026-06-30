@@ -47,4 +47,7 @@ Repository = "https://github.com/natemacfadden/latticepts"
 packages = ["latticepts"]
 
 [tool.setuptools.package-data]
-latticepts = ["*.pyx", "*.pxd", "*.h", "*.c"]
+latticepts = ["*.pyx", "*.pxd", "*.h", "*.c", "py.typed", "*.pyi"]
+
+[tool.ruff]
+target-version = "py39"
