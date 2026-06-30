@@ -25,12 +25,22 @@ for $H\in\mathbb{Z}^{N_\text{hyps}\times\text{dim}}$ and $\text{rhs}\in\mathbb{Z
 ## Installation
 
 ```
+pip install latticepts
+```
+
+This installs a prebuilt wheel from [PyPI](https://pypi.org/project/latticepts/) -- no C compiler needed (CPython 3.9-3.13 on Linux and macOS; Windows is unsupported, see [Limitations](#limitations)).
+
+### Building from source
+
+Build from a clone for a development install, or to enable the machine-specific (`LATTICEPTS_NATIVE`) or parallel (`LATTICEPTS_OPENMP`) builds below:
+
+```
 pip install -e .
 ```
 
 Requires a C compiler.
 
-For a faster, machine-specific build from source, set `LATTICEPTS_NATIVE=1`:
+For a faster, machine-specific build, set `LATTICEPTS_NATIVE=1`:
 
 ```
 LATTICEPTS_NATIVE=1 pip install -e .
