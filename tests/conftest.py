@@ -15,6 +15,9 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # =============================================================================
 
+import itertools
+import math
+
 import numpy as np
 
 try:
@@ -33,6 +36,23 @@ except ImportError:
 
 def _sort_rows(pts):
     return pts[np.lexsort(pts.T[::-1])]
+
+
+def _brute_force(H, B, rhs, primitive=False):
+    """Dependency-free oracle: all x in [-B,B]^dim with H @ x >= rhs (and
+    GCD(|x|)==1 if primitive). O((2B+1)^dim) -- keep B and dim small."""
+    H = np.asarray(H, dtype=np.int64)
+    dim = H.shape[1]
+    rhs_v = (np.asarray(rhs, dtype=np.int64) if np.ndim(rhs)
+             else np.full(H.shape[0], rhs, dtype=np.int64))
+    out = []
+    for x in itertools.product(range(-B, B + 1), repeat=dim):
+        xv = np.array(x, dtype=np.int64)
+        if np.all(H @ xv >= rhs_v):
+            if primitive and math.gcd(*(abs(int(v)) for v in xv)) != 1:
+                continue
+            out.append(tuple(int(v) for v in xv))
+    return sorted(out)
 
 
 def _run_normaliz(H, B, rhs):

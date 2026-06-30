@@ -21,7 +21,7 @@ import numpy as np
 import pytest
 
 from latticepts import box_enum
-from conftest import _sort_rows, _run_normaliz, _run_cpsat
+from conftest import _sort_rows, _run_normaliz, _run_cpsat, _brute_force
 
 # the following imports are only needed for testing
 try:
@@ -359,3 +359,24 @@ def test_count_only_reports_true_count_regardless_of_max_N_out():
     # materializing with a small buffer MUST still truncate (cap unchanged)
     out, st, _ = box_enum(B=B, H=H, rhs=-B, max_N_out=2, count_only=False)
     assert st == -2 and out.shape[0] == 2
+
+
+@pytest.mark.parametrize("seed", range(5))
+def test_box_enum_matches_brute_force(seed):
+    # dependency-free oracle on small boxes (dim <= 3, B <= 4): box_enum's
+    # point set must exactly match an itertools brute force, for both the
+    # primitive filter and the serial/parallel paths.
+    rng = np.random.default_rng(seed)
+    dim = int(rng.integers(2, 4))
+    N_hyps = int(rng.integers(1, 4))
+    B = int(rng.integers(2, 5))
+    H = rng.integers(-3, 4, size=(N_hyps, dim)).astype(np.int32)
+    rhs = int(rng.integers(-2, 1))
+    for primitive in (False, True):
+        for parallel in (False, True):
+            out, status, _ = box_enum(B=B, H=H, rhs=rhs, max_N_out=10**6,
+                                      primitive=primitive, parallel=parallel)
+            assert status == 0
+            got = sorted(tuple(int(v) for v in row) for row in out)
+            assert got == _brute_force(H, B, rhs, primitive), \
+                f"seed={seed} primitive={primitive} parallel={parallel}"
