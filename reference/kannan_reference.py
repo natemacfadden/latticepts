@@ -16,8 +16,13 @@
 # =============================================================================
 #
 # -----------------------------------------------------------------------------
-# Description:  Reference njit implementation of Kannan's algorithm. For
-#               learning only - read alongside latticepts/box_enum.h.
+# Description:  A pedagogical illustration of Kannan's algorithm in njit
+#               Python, meant to be read alongside latticepts/box_enum.h to
+#               learn the method. It is not part of latticepts: not shipped in
+#               the wheel, not imported at runtime, and not a correctness
+#               oracle -- intentionally untested and not maintained for parity
+#               with box_enum, which is the authoritative implementation.
+#               Scalar rhs only (cones, not general polyhedra).
 #
 # Note:         Requires numba, which is not a dependency of latticepts
 #               itself (this file is for learning only and is not shipped
