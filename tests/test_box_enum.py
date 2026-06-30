@@ -20,7 +20,7 @@ import itertools
 import numpy as np
 import pytest
 
-from latticepts import box_enum
+from latticepts import box_enum, min_B_for
 from conftest import _sort_rows, _run_normaliz, _run_cpsat, _brute_force
 
 # the following imports are only needed for testing
@@ -380,3 +380,14 @@ def test_box_enum_matches_brute_force(seed):
             got = sorted(tuple(int(v) for v in row) for row in out)
             assert got == _brute_force(H, B, rhs, primitive), \
                 f"seed={seed} primitive={primitive} parallel={parallel}"
+
+
+def test_min_B_for():
+    # first-quadrant cone: box [-B,B]^2 intersect {x0>=0, x1>=0} has (B+1)^2
+    # points, monotone in B. Smallest B with >= 50 points is 7 (64); B=6 -> 49.
+    H = np.array([[1, 0], [0, 1]], dtype=np.int32)
+    B, N = min_B_for(H, rhs=0, min_N_pts=50, primitive=False)
+    assert (B, N) == (7, 64)
+    # minimality: one smaller box is insufficient
+    out_small, st, _ = box_enum(B=B - 1, H=H, rhs=0, max_N_out=10**6)
+    assert st == 0 and out_small.shape[0] < 50
