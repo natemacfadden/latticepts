@@ -1,8 +1,9 @@
 # macOS
 .DS_Store
 
-# benchmark outputs
+# benchmark outputs (keep the committed README figures under docs/)
 *.png
+!docs/*.png
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
