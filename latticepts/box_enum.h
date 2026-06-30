@@ -207,6 +207,11 @@ static inline int set_bounds(
                         : floor_div_i64(numer, (int64_t)h);
             hi = min_int(hi, v < (int64_t)lo ? lo - 1 : (v > (int64_t)hi ? hi : (int)v));
         }
+
+        // interval empty: lo only rises and hi only falls from here, so no later
+        // constraint can revive it -- skip them (saves O(N_hyps) work on pruned
+        // nodes, the dominant cost at high N_hyps). num would be 0 regardless.
+        if (lo > hi) break;
     }
 
     // store the data to recreate the interval
