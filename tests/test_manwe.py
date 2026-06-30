@@ -198,3 +198,38 @@ def test_manwe_vs_cpsat(rhs_val):
 def test_bench_box_enum(benchmark):
     benchmark(box_enum, B=10, H=H, rhs=1,
               max_N_out=MAX_N_OUT, max_N_nodes=MAX_N_NODES)
+
+
+# =============================================================================
+# Performance-regression gate
+# =============================================================================
+# N_nodes (search-tree size) depends only on (B, H, rhs) -- not on hardware or
+# timing -- so it gates algorithmic regressions in CI with zero flakiness (a
+# wall-clock band would be useless given CI-runner speed variance). Baselines
+# are the current serial-kernel node counts; only growth fails. If you change
+# the search on purpose, update them (a drop is expected for an improvement).
+PERF_BASELINE = {            # (rhs, B): serial N_nodes
+    (-1, 10): 7_709_403,
+    (1, 10):  1_226_121,
+}
+
+
+@pytest.mark.parametrize("rhs_val,B", list(PERF_BASELINE))
+def test_perf_no_node_regression(rhs_val, B):
+    count, status, N_nodes = box_enum(B=B, H=H, rhs=rhs_val, max_N_out=MAX_N_OUT,
+                                      max_N_nodes=MAX_N_NODES, count_only=True,
+                                      parallel=False)
+    assert status == 0
+    assert N_nodes <= PERF_BASELINE[(rhs_val, B)], \
+        f"search-node regression rhs={rhs_val} B={B}: {N_nodes} > baseline"
+
+
+def test_perf_search_efficiency():
+    # Defends the README's ~1.57-nodes-per-point headline on a dense cone
+    # (current ~1.41; 1.6 leaves headroom while catching a pruning regression).
+    count, status, N_nodes = box_enum(B=10, H=H, rhs=-1, max_N_out=MAX_N_OUT,
+                                      max_N_nodes=MAX_N_NODES, count_only=True,
+                                      parallel=False)
+    assert status == 0
+    assert N_nodes / count <= 1.6, \
+        f"search efficiency regressed: {N_nodes / count:.3f} nodes/point > 1.6"
