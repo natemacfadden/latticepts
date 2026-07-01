@@ -64,7 +64,7 @@ The two build flags are independent and compose; for the fastest build, set both
 LATTICEPTS_NATIVE=1 LATTICEPTS_OPENMP=1 pip install -e .
 ```
 
-Counting parallelizes well -- ~6x on 12 threads when there are many top-level branches (latticepts splits the search across the top coordinate's values, so that count caps the speedup); materializing gains less (~2x: its two-pass count-then-fill is more memory-bound), and the thread-startup overhead can make the serial path (`parallel=False`) faster for small outputs. No extra memory either way: counting holds only each thread's small `O(N_hyps * dim)` search state, and materializing fills disjoint slices of the single output buffer (no per-thread copies). See [the benchmarks](#benchmarks) for thread-scaling plots.
+Counting parallelizes well -- ~7x on 12 threads when there are many top-level branches (latticepts splits the search across the top coordinate's values, so that count caps the speedup); materializing gains less (~2x: its two-pass count-then-fill is more memory-bound), and the thread-startup overhead can make the serial path (`parallel=False`) faster for small outputs. No extra memory either way: counting holds only each thread's small `O(N_hyps * dim)` search state, and materializing fills disjoint slices of the single output buffer (no per-thread copies). See [the benchmarks](#benchmarks) for thread-scaling plots.
 
 ## Algorithm Notes
 
@@ -78,7 +78,7 @@ A helper method to `box_enum` is provided in case the user wants $N$ points but 
 
 ## Benchmarks
 
-The three comparison benchmarks below are **single-threaded** -- each tool is given one thread, so none is helped or hurt by its own parallelism -- measured on a 6-core / 12-thread Intel Core i5-10600K (4.1 GHz, 16 GB RAM, Ubuntu 24.04) with the default `pip install` build (GCC `-O3`). Each plotted point is the median of several warmed-up runs; error bars are usually smaller than the marker. To recreate: `conda env create -f environment-bench.yml`, then run the [`benchmarks/`](https://github.com/natemacfadden/latticepts/tree/main/benchmarks) scripts. latticepts's own multicore scaling is shown separately below.
+The three comparison benchmarks below are **single-threaded** -- each tool is given one thread, so none is helped or hurt by its own parallelism -- measured on a 24-core Intel Core Ultra 7 270K (30 GB RAM, Ubuntu 26.04) with the default `pip install` build (GCC `-O3`). Each plotted point is the median of several warmed-up runs; error bars are usually smaller than the marker. To recreate: `conda env create -f environment-bench.yml`, then run the [`benchmarks/`](https://github.com/natemacfadden/latticepts/tree/main/benchmarks) scripts. latticepts's own multicore scaling is shown separately below.
 
 **Convex cones:** runtime vs requested number of interior lattice points in a cone (i.e., not on the boundary). The cone studied is the 7D 'Manwe' from https://arxiv.org/abs/2406.13751:
 
@@ -98,10 +98,10 @@ The three comparison benchmarks below are **single-threaded** -- each tool is gi
   <img src="docs/benchmark_dim.png" alt="Runtime vs dimension for the length-2 hypercube"/>
 </p>
 
-**Thread scaling:** latticepts also parallelizes (build with `LATTICEPTS_OPENMP=1`; the comparison plots above use the single-threaded serial path). It splits the search across the top coordinate's values, so the number of top-level branches caps the speedup. On a bounded cube $|x_i|\leq 10$ in 6D (~86M points, 21 top-level branches), the parallelization achieves ~6x speedup for counting the points and ~2x speedup for materializing them, both on 12 threads. Parallelization was often counterproductive (slower) for Normaliz and CP-SAT.
+**Thread scaling:** latticepts also parallelizes (build with `LATTICEPTS_OPENMP=1`; the comparison plots above use the single-threaded serial path). It splits the search across the top coordinate's values, so the number of top-level branches caps the speedup. On a bounded cube $|x_i|\leq 10$ in 6D (~86M points, 21 top-level branches), the parallelization achieves ~7x speedup for counting the points and ~2x speedup for materializing them, both on 12 threads. Parallelization was often counterproductive (slower) for Normaliz and CP-SAT.
 
 <p align="center">
-  <img src="docs/benchmark_threads.png" alt="latticepts thread scaling on a bounded cube: counting ~6x on 12 threads, materializing ~2x"/>
+  <img src="docs/benchmark_threads.png" alt="latticepts thread scaling on a bounded cube: counting ~7x on 12 threads, materializing ~2x"/>
 </p>
 
 ## Usage
