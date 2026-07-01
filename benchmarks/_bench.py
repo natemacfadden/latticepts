@@ -25,11 +25,11 @@
 import time
 
 # how the benchmark scripts time each point, unless they override
-WARMUP  = 1
-REPEATS = 5
+WARMUP  = 2
+REPEATS = 9
 
 
-def timed_median(fn, *args, warmup=WARMUP, repeats=REPEATS, max_total=2.0,
+def timed_median(fn, *args, warmup=WARMUP, repeats=REPEATS, max_total=6.0,
                  **kwargs):
     """
     Time ``fn(*args, **kwargs)`` over repeated trials and return statistics.
