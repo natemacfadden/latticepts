@@ -200,12 +200,22 @@ static inline int set_bounds(
             int64_t v = (numer >= -FP_EXACT && numer <= FP_EXACT)
                         ? (int64_t)ceil((double)numer/h)
                         : ceil_div_i64(numer, (int64_t)h);
-            lo = max_int(lo, v > (int64_t)hi ? hi + 1 : (v < (int64_t)lo ? lo : (int)v));
+            if (v > (int64_t)hi) {
+                lo = hi + 1;   // empty interval -- constraint unsatisfiable
+            } else if (v >= (int64_t)lo) {
+                lo = (int)v;   // safe: lo <= v <= hi, so v fits in int
+            }
+            // else: v < lo -> constraint already satisfied, lo unchanged
         } else {
             int64_t v = (numer >= -FP_EXACT && numer <= FP_EXACT)
                         ? (int64_t)floor((double)numer/h)
                         : floor_div_i64(numer, (int64_t)h);
-            hi = min_int(hi, v < (int64_t)lo ? lo - 1 : (v > (int64_t)hi ? hi : (int)v));
+            if (v < (int64_t)lo) {
+                hi = lo - 1;   // empty interval -- constraint unsatisfiable
+            } else if (v <= (int64_t)hi) {
+                hi = (int)v;   // safe: lo <= v <= hi, so v fits in int
+            }
+            // else: v > hi -> constraint already satisfied, hi unchanged
         }
 
         // interval empty: lo only rises and hi only falls from here, so no later
