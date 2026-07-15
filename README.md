@@ -78,7 +78,7 @@ A helper method to `box_enum` is provided in case the user wants $N$ points but 
 
 ## Benchmarks
 
-The three comparison benchmarks below are **single-threaded** -- each tool is given one thread, so none is helped or hurt by its own parallelism -- measured on a 24-core Intel Core Ultra 7 270K (30 GB RAM, Ubuntu 26.04) with the default `pip install` build (GCC `-O3`). Each plotted point is the median of several warmed-up runs; error bars are usually smaller than the marker. To recreate: `conda env create -f environment-bench.yml`, then run the [`benchmarks/`](https://github.com/natemacfadden/latticepts/tree/main/benchmarks) scripts. latticepts's own multicore scaling is shown separately below.
+The three comparison benchmarks below are **single-threaded** -- each tool is given one thread, so none is helped or hurt by its own parallelism -- measured on a 24-core Intel Core Ultra 7 270K (30 GB RAM, Ubuntu 26.04) with the default `pip install` build (GCC `-O3`). Each plotted point is the median of several warmed-up runs; error bars are usually smaller than the marker. To recreate (Python >= 3.12): `pip install -e ".[benchmark]"`, then run the [`benchmarks/`](https://github.com/natemacfadden/latticepts/tree/main/benchmarks) scripts. latticepts's own multicore scaling is shown separately below.
 
 **Convex cones:** runtime vs requested number of interior lattice points in a cone (i.e., not on the boundary). The cone studied is the 7D 'Manwe' from https://arxiv.org/abs/2406.13751:
 
