@@ -190,7 +190,11 @@ def box_enum(B: int,
     cdef int32_t[::1] undo_sort_view = undo_sort_np
 
     if max_N_nodes == -1:
-        trivial = ((2*B + 1)**(dim + 1) - 1) // (2*B)
+        if B == 0:
+            # geometric series requires r>1 for formula
+            trivial = dim + 1
+        else:
+            trivial = ((2*B + 1)**(dim + 1) - 1) // (2*B)
         max_N_nodes = min(trivial, 9_200_000_000_000_000_000)  # cap at ~LONG_MAX
 
     # call the C kernel: parallel path by default; parallel=False forces serial
