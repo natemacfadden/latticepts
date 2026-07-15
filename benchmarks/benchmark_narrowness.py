@@ -22,11 +22,14 @@
 # c -> inf: no constraint (widest).
 
 import numpy as np
-import time
 import matplotlib.pyplot as plt
 from fractions import Fraction
 
 from latticepts import enum_lattice_points
+from _bench import timed_median
+
+def _fmt(elapsed):
+    return f"{elapsed:>10.3f}"
 
 # =============================================================================
 # Parameters
@@ -74,21 +77,27 @@ H_empty = np.empty((0, dim), dtype=np.int32)
 
 if __name__ == "__main__":
     print(f"dim={dim}, N={N:,}, rhs={rhs}")
-    print(f"{'log(c-1)':>10}  {'(a/b)':>22}  {'time (s)':>10}")
-    print("-" * 48)
+    print("# c = a/b = pairwise constraint ratio  (a*x_i - b*x_j >= 0 for all i!=j  =>  x_i/x_j in [1/c, c])")
+    print("# log(c-1) spreads out the near-1 regime  (c=1 narrowest: all x_i equal; large c: wide)")
+    print(f"{'log(c-1)':>10}  {'(a/b)':>22}  {'median(s)':>10}  {'lo(s)':>10}  {'hi(s)':>10}")
+    print("-" * 70)
 
-    t0 = time.perf_counter()
-    enum_lattice_points(H=H_empty, rhs=rhs, min_N_pts=N, verbosity=0, max_B=MAX_B)
-    t_unconstrained = time.perf_counter() - t0
-    print(f"{'--':>10}  {'no constraints':>22}  {t_unconstrained:>10.3f}")
+    med_u, lo_u, hi_u = timed_median(enum_lattice_points, H=H_empty, rhs=rhs,
+                                     min_N_pts=N, verbosity=0, max_B=MAX_B)
+    print(f"{'--':>10}  {'no constraints':>22}  "
+          f"{_fmt(med_u)}  {_fmt(lo_u)}  {_fmt(hi_u)}")
 
-    times = []
+    times   = []
+    los     = []
+    his     = []
     for (a, b), c in zip(AB_VALUES, C_EFF):
-        t0 = time.perf_counter()
-        enum_lattice_points(H=make_H(a, b), rhs=rhs, min_N_pts=N, verbosity=0, max_B=MAX_B)
-        elapsed = time.perf_counter() - t0
-        times.append(elapsed)
-        print(f"{np.log(c-1):>10.3f}  {f'({a}/{b})':>22}  {elapsed:>10.3f}")
+        med, lo, hi = timed_median(enum_lattice_points, H=make_H(a, b), rhs=rhs,
+                                   min_N_pts=N, verbosity=0, max_B=MAX_B)
+        times.append(med)
+        los.append(lo)
+        his.append(hi)
+        print(f"{np.log(c-1):>10.3f}  {f'({a}/{b})':>22}  "
+              f"{_fmt(med)}  {_fmt(lo)}  {_fmt(hi)}")
 
     # =============================================================================
     # Plot
@@ -97,8 +106,12 @@ if __name__ == "__main__":
     x = np.log(np.array(C_EFF) - 1)
 
     fig, ax = plt.subplots(figsize=(7, 4))
-    ax.plot(x, times, 'o-', color='steelblue', label='pairwise cone')
-    ax.axhline(t_unconstrained, color='gray', linestyle='--', label='no constraints')
+    ax.errorbar(x, times, yerr=[np.array(times) - np.array(los),
+                                 np.array(his) - np.array(times)],
+                fmt='o-', color='steelblue', capsize=3, label='pairwise cone')
+    ax.axhline(med_u, color='gray', linestyle='--', label='no constraints')
+    # fill a faint band for the unconstrained interval
+    ax.axhspan(lo_u, hi_u, color='gray', alpha=0.06)
     ax.set_xlabel('$\\log(c - 1)$  (narrower $\\leftarrow$  wider $\\rightarrow$)')
     ax.set_ylabel('time (s)')
     ax.set_title(f'enum_lattice_points: time vs cone narrowness  (dim={dim}, N={N:,})')

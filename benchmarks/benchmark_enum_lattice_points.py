@@ -16,9 +16,9 @@
 # =============================================================================
 
 import numpy as np
-import time
 
 from latticepts import enum_lattice_points
+from _bench import timed_median
 
 # =============================================================================
 # Hard-coded 'Manwe' data (from https://arxiv.org/abs/2406.13751)
@@ -112,7 +112,7 @@ N_VALUES = [1, 10, 100, 1_000, 10_000, 100_000, 1_000_000, 10_000_000, 100_000_0
 TIMEOUT = 60.0
 
 def _fmt(elapsed):
-    return f"{elapsed:>10.3f}s"
+    return f"{elapsed:>10.3f}"
 
 def _skip_fmt(label):
     return f"{label:>11}"
@@ -124,8 +124,8 @@ def _fmt_N(n):
 
 
 if __name__ == "__main__":
-    print(f"{'N':>5}  {'N_out':>6}  {'enum_lattice_pts':>18}")
-    print("-" * 35)
+    print(f"{'N':>5}  {'N_out':>6}  {'median(s)':>10}  {'lo(s)':>10}  {'hi(s)':>10}")
+    print("-" * 49)
 
     skip = None
 
@@ -133,15 +133,18 @@ if __name__ == "__main__":
         n_str = _fmt_N(N)
 
         if skip is not None:
-            print(f"{n_str:>5}  {'TO':>6}  {_skip_fmt(skip)}")
+            print(f"{n_str:>5}  {'TO':>6}  {'TO':>10}  {'--':>10}  {'--':>10}")
             continue
 
-        t0 = time.perf_counter()
-        # explicit buffer -> fast single-pass path (skips the count-only dry run)
-        pts = enum_lattice_points(H=H, rhs=rhs, min_N_pts=N, max_N_out=max(10_000, 4*N))
-        elapsed = time.perf_counter() - t0
+        median, lo, hi = timed_median(enum_lattice_points, H=H, rhs=rhs,
+                                      min_N_pts=N, max_N_out=max(10_000, 4*N),
+                                      max_total=TIMEOUT)
+        # one extra call to get pts for the N_out display
+        pts = enum_lattice_points(H=H, rhs=rhs, min_N_pts=N,
+                                  max_N_out=max(10_000, 4*N))
 
-        print(f"{n_str:>5}  {_fmt_N(len(pts)):>6}  {_fmt(elapsed)}")
+        print(f"{n_str:>5}  {_fmt_N(len(pts)):>6}  "
+              f"{_fmt(median)}  {_fmt(lo)}  {_fmt(hi)}")
 
-        if elapsed > TIMEOUT:
+        if median > TIMEOUT:
             skip = "TO"

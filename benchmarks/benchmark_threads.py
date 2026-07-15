@@ -42,6 +42,9 @@ DIM = 6
 B   = 10   # |x_i| <= 10 in 6D: (21)^6 = 85.8M points, 21 top-level branches (> cores)
 
 
+def _fmt(elapsed):
+    return f"{elapsed:>10.3f}"
+
 def _worker(n):
     """Time count + materialize on the bounded cube at the env-fixed thread count."""
     import time
@@ -70,6 +73,8 @@ if __name__ == "__main__":
         sys.exit(0)
 
     data = {}
+    print(f"{'threads':>8}  {'count(s)':>10}  {'materialize(s)':>14}")
+    print("-" * 36)
     for n in THREADS:
         env = dict(os.environ, OMP_NUM_THREADS=str(n), OMP_WAIT_POLICY="passive")
         out = subprocess.run([sys.executable, os.path.abspath(__file__),
@@ -79,8 +84,7 @@ if __name__ == "__main__":
             data[n] = json.loads(out.stdout.strip().splitlines()[-1])
         except (ValueError, IndexError):
             sys.exit(f"worker (threads={n}) failed:\n{out.stdout}\n{out.stderr}")
-        print(f"threads={n:2d}  "
-              + "  ".join(f"{k}={v:.3f}s" for k, v in data[n].items()))
+        print(f"{n:>8}  {_fmt(data[n]['count'])}  {data[n]['mater']:>14.3f}")
 
     try:
         import matplotlib.pyplot as plt

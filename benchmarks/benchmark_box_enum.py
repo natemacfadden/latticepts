@@ -200,10 +200,10 @@ def run_cpsat(B, num_workers=1):
 TIMEOUT = 5.0
 
 def _fmt(elapsed):
-    return f"{elapsed:>10.3f}s"
+    return f"{elapsed:>10.3f}"
 
 def _skip_fmt(label):
-    return f"{label:>11}"
+    return f"{label:>10}"
 
 
 if __name__ == "__main__":
@@ -221,8 +221,8 @@ if __name__ == "__main__":
         PyNormaliz.NmzSetNumberOfNormalizThreads(1)
 
     print(f"{'B':>3}  {'N':>9}  {'fill_frac':>9}  {'expl_frac':>9}  {'effic':>9}  "
-          f"{'box_enum':>11}  {'normaliz':>11}  {'cpsat':>11}")
-    print("-" * 90)
+          f"{'box_enum(s)':>10}  {'normaliz(s)':>10}  {'cpsat(s)':>10}")
+    print("-" * 85)
 
     skip_box      = None
     skip_normaliz = "NI" if not HAS_NORMALIZ else None
