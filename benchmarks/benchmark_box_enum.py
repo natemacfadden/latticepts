@@ -26,20 +26,23 @@ from _bench import timed_median
 try:
     import PyNormaliz
     HAS_NORMALIZ = True
-except ImportError:
+except ImportError as e:
     HAS_NORMALIZ = False
+    print(f"PyNormaliz import failed: {e}")
 
 try:
     from ortools.sat.python import cp_model
     HAS_CPSAT = True
-except ImportError:
+except ImportError as e:
     HAS_CPSAT = False
+    print(f"ortools import failed: {e}")
 
 try:
     import matplotlib.pyplot as plt
     HAS_MPL = True
-except ImportError:
+except ImportError as e:
     HAS_MPL = False
+    print(f"matplotlib import failed: {e}")
 
 # =============================================================================
 # Hard-coded 'Manwe' data (from https://arxiv.org/abs/2406.13751)

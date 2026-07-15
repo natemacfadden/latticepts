@@ -16,7 +16,7 @@ dependencies:
   - pip
   - pip:
       - ortools
-      - cytools
+      - cytools>=1.4.12
       - pynormaliz
       - pytest
       - pytest-benchmark

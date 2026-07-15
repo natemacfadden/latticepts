@@ -88,8 +88,8 @@ if __name__ == "__main__":
 
     try:
         import matplotlib.pyplot as plt
-    except ImportError:
-        sys.exit("matplotlib not available; timings printed above")
+    except ImportError as e:
+        sys.exit(f"matplotlib import failed: {e}")
 
     curves = [("count", "latticepts (count)",       "steelblue", "o-"),
               ("mater", "latticepts (materialize)", "navy",      "o--")]

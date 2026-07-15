@@ -34,6 +34,9 @@ test = [
   "ortools",
   "PyNormaliz",
 ]
+benchmark = [
+  "cytools",
+]
 # only needed to run reference/kannan_reference.py (the pedagogical port);
 # not required by latticepts itself
 reference = [

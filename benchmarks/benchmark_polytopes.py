@@ -32,9 +32,9 @@ import matplotlib.pyplot as plt
 try:
     import PyNormaliz
     HAS_NORMALIZ = True
-except ImportError:
+except ImportError as e:
     HAS_NORMALIZ = False
-    print("PyNormaliz not available; skipping Normaliz comparisons.")
+    print(f"PyNormaliz import failed: {e}")
 
 from latticepts import box_enum
 
@@ -44,16 +44,16 @@ try:
     from cytools import fetch_polytopes
     from cytools.polytope import saturating_lattice_pts  # CYTools routine; implements the Braun/SageMath algorithm
     HAS_CYTOOLS = True
-except ImportError:
+except ImportError as e:
     HAS_CYTOOLS = False
-    print("CYTools not available; skipping CYTools comparisons.")
+    print(f"CYTools import failed: {e}; skipping CYTools comparisons.")
 
 try:
     from ortools.sat.python import cp_model
     HAS_CPSAT = True
-except ImportError:
+except ImportError as e:
     HAS_CPSAT = False
-    print("ortools not available; skipping CP-SAT comparisons.")
+    print(f"ortools import failed: {e}")
 
 DOCS_DIR = os.path.join(os.path.dirname(__file__), '..', 'docs')
 TIMEOUT  = 60  # seconds; skip remaining calls for a method if exceeded
@@ -143,6 +143,7 @@ def run_h11_benchmark():
 
         polys = fetch_polytopes(h11=h11, limit=1)
         if len(polys) == 0:
+            print(f"h11={h11}: no polytopes fetched")
             time_latticepts.append(None)
             time_cytools.append(None)
             time_normaliz.append(None)
