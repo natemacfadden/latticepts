@@ -116,9 +116,13 @@ from latticepts import enum_lattice_points
 H   = np.array([[1, 2], [3, -1]], dtype=np.int32)
 rhs = 1
 pts = enum_lattice_points(H=H, rhs=rhs, min_N_pts=1000)
+# pts.shape -> (1062, 2), dtype int32; overshoots min_N_pts because the
+# search grows B in steps (stops at B=31) and returns all points at that B
 
 # Optionally restrict to primitive vectors (GCD = 1)
 pts = enum_lattice_points(H=H, rhs=rhs, min_N_pts=1000, primitive=True)
+# pts.shape -> (1026, 2): still >= min_N_pts, but primitive vectors are
+# sparser, so the search steps to a larger box (B=39) to reach the minimum
 ```
 
 `box_enum` allows direct control over the box size $B$ instead of the number of lattice points. I.e., to enumerate all lattice points in $\\{x: Hx \geq \text{rhs},\\ |x|_\infty \leq B\\}$:
@@ -127,6 +131,7 @@ pts = enum_lattice_points(H=H, rhs=rhs, min_N_pts=1000, primitive=True)
 from latticepts import box_enum
 
 pts, status, N_nodes = box_enum(B=5, H=H, rhs=rhs, max_N_out=10_000)
+# pts.shape -> (31, 2), status == 0 (success), N_nodes == 39
 # status: 0 = success, -1 = dim>256, -2 = hit max_N_out, -3 = hit max_N_nodes, -4 = too many constraints
 # (statuses are also explained in the docstring)
 ```
@@ -148,6 +153,7 @@ B   = 42
 
 # one can then get the lattice points via:
 pts, status, N_nodes = box_enum(B=B, H=H, rhs=rhs, max_N_out=10_000)
+# pts.shape -> (680, 4), status == 0, N_nodes == 1289
 ```
 
 ## Citation
