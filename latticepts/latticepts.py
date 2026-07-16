@@ -198,6 +198,12 @@ def enum_lattice_points(
             Bs_fit.append(np.log(B))
             Npts_fit.append(np.log(N))
 
+        # these constants are chosen for performance after a light scan
+        # no effect on correctness (for reasonable values)
+        magicA = 1.5
+        magicB = 200
+        magicC = 0.05
+
         # guess the B to scale it to using some fitting:
         # log(N) = m log(B) + b
         # log(N1)-log(N0) = m(log(B1)-log(B0))
@@ -205,25 +211,25 @@ def enum_lattice_points(
         #  untrustworthy)
         if len(Bs_fit) > 2:  # require >=3 points before trusting the fit
             m = (Npts_fit[-1]-Npts_fit[-2])/(Bs_fit[-1]-Bs_fit[-2])
-            # Inflate slope by 1.5x to underestimate the next B
-            m *= 1.5
+            # Inflate slope to underestimate the next B
+            m *= magicA
 
             Bguess = (np.log(min_N_pts)-Npts_fit[-1])/m + Bs_fit[-1]
             Bguess = np.exp(min(Bguess, np.log(max_B) if max_B > 0 else 0))
             # With few points the log-log fit is noisy, so cap the step
-            # at 5% of B to avoid large jumps on unreliable extrapolation
-            if N <= 200:
-                Bstep  = min(Bguess - B, 0.05*B)
+            # at some % of B to avoid large jumps on unreliable extrapolation
+            if N <= magicB:
+                Bstep  = min(Bguess - B, magicC*B)
             else:
                 Bstep = Bguess - B
             Bstep = int(np.ceil(Bstep))
             if Bstep <= 0:
-                B += min(3, int(np.ceil(0.05*B)))
+                B += min(3, int(np.ceil(magicC*B)))
             else:
                 B += Bstep
         else:
             # be very conservative with B if we have few points
-            B += min(3, int(np.ceil(0.05*B)))
+            B += min(3, int(np.ceil(magicC*B)))
 
     if count_only:
         # dry run: return the box B reached and the count N
