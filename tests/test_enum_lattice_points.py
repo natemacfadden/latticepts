@@ -117,3 +117,12 @@ def test_enum_N_pts(min_N_pts, rhs_val):
         f"rhs={rhs_val}, min_N_pts={min_N_pts}: got {len(pts)} points"
     assert np.all(H.astype(np.int64) @ pts.T.astype(np.int64) >= rhs_val), \
         f"rhs={rhs_val}, min_N_pts={min_N_pts}: some points violate H @ x >= {rhs_val}"
+
+
+def test_too_many_constraints_raises():
+    # the wrapper must surface box_enum's -4 (N_hyps too large) as a ValueError,
+    # not swallow it into a misleading empty result
+    H = np.zeros((300_000, 2), dtype=np.int32)
+    H[:, 0] = 1
+    with pytest.raises(ValueError, match="too large"):
+        enum_lattice_points(H=H, rhs=0, min_N_pts=5)

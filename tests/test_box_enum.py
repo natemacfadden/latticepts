@@ -391,3 +391,12 @@ def test_min_B_for():
     # minimality: one smaller box is insufficient
     out_small, st, _ = box_enum(B=B - 1, H=H, rhs=0, max_N_out=10**6)
     assert st == 0 and out_small.shape[0] < 50
+
+
+def test_too_many_constraints_rejected():
+    # N_hyps whose VLA footprint would exceed ~4 MB returns -4, not a stack crash.
+    # dim stays low (the library's target); N_hyps (facet count) is the large axis.
+    H = np.zeros((300_000, 2), dtype=np.int32)
+    H[:, 0] = 1
+    _, status, _ = box_enum(B=1, H=H, rhs=0, max_N_out=10)
+    assert status == -4
