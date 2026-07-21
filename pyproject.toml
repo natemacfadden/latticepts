@@ -38,11 +38,14 @@ test = [
 # comparison targets (CYTools, OR-Tools CP-SAT, PyNormaliz) and plotting.
 # needs Python >= 3.12: cytools depends on pplpy, which ships wheels for
 # CPython >= 3.12 only (older interpreters fall back to an sdist build).
+# competitor versions pinned to the benchmarked configuration (ortools 9.15.6755,
+# PyNormaliz 2.24) so the published comparisons are reproducible; the compatible-
+# release pins allow patch updates only. Pins apply to this extra, not the core install.
 benchmark = [
   "matplotlib",
   "cytools>=1.4.12",
-  "ortools",
-  "PyNormaliz",
+  "ortools~=9.15.0",
+  "PyNormaliz~=2.24.0",
 ]
 # only needed to run reference/kannan_reference.py (the pedagogical port);
 # not required by latticepts itself
