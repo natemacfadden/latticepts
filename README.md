@@ -196,3 +196,7 @@ latticepts/
 ├── pyproject.toml
 └── setup.py
 ```
+
+## License
+
+[GPLv3](LICENSE). Copyright (c) 2026 Nate MacFadden.
