@@ -21,10 +21,11 @@
 #               the points by GCDs.
 # -----------------------------------------------------------------------------
 
-# external imports
-import numpy as np
+# stdlib imports
 import warnings
 
+# external imports
+import numpy as np
 from numpy.typing import ArrayLike
 
 # local imports (import the function explicitly, not the submodule, so type
