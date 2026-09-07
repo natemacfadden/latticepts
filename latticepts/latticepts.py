@@ -32,6 +32,65 @@ from numpy.typing import ArrayLike
 # checkers resolve box_enum to the callable rather than the module)
 from .box_enum import box_enum
 
+# growth factor for B while no point has been found yet
+_EMPTY_GROWTH = 1.5
+# slack when rounding the LP bound, so floating error cannot push the start box
+# above the true minimum and skip a populated box
+_LP_TOL = 1e-6
+
+
+def _lp_min_box(H: np.ndarray, rhs: np.ndarray) -> "tuple[float | None, bool]":
+    """
+    Solve the LP relaxation
+        min B  s.t.  H x >= rhs,  -B <= x_i <= B,  B >= 0
+    over real x, returning ``(B, infeasible)``.
+
+    ``B`` is a lower bound on ``||x||_inf`` for every *integer* point satisfying
+    the same constraints, since each such point is LP-feasible. Returns
+    ``(None, False)`` if scipy is unavailable or the solve fails, so callers fall
+    back to their own starting box.
+
+    This formulation is bounded. Maximising a margin instead (``max t`` s.t.
+    ``H x >= t``) is not: the feasible set is a cone, so scaling ``x`` scales
+    ``t`` without limit.
+    """
+    try:
+        from scipy.optimize import linprog
+    except ImportError:
+        return None, False
+
+    n_hyps, dim = H.shape
+
+    # variables z = (x_0..x_{dim-1}, B)
+    A_ub = np.zeros((n_hyps + 2*dim, dim + 1))
+    b_ub = np.zeros(n_hyps + 2*dim)
+
+    # -H x <= -rhs
+    A_ub[:n_hyps, :dim] = -H
+    b_ub[:n_hyps] = -np.asarray(rhs, dtype=float)
+
+    # x_i - B <= 0 ;  -x_i - B <= 0
+    idx = np.arange(dim)
+    A_ub[n_hyps + idx, idx] = 1.0
+    A_ub[n_hyps + idx, dim] = -1.0
+    A_ub[n_hyps + dim + idx, idx] = -1.0
+    A_ub[n_hyps + dim + idx, dim] = -1.0
+
+    c = np.zeros(dim + 1)
+    c[dim] = 1.0
+    try:
+        res = linprog(c, A_ub=A_ub, b_ub=b_ub,
+                      bounds=[(None, None)]*dim + [(0, None)], method="highs")
+    except Exception:
+        return None, False
+
+    if res.status == 2:      # provably infeasible
+        return None, True
+    if res.status != 0 or res.x is None:
+        return None, False   # unbounded/iteration limit/etc: just don't seed
+    return float(res.x[dim]), False
+
+
 def enum_lattice_points(
     H: ArrayLike,
     rhs: "int | ArrayLike",
@@ -41,7 +100,8 @@ def enum_lattice_points(
     min_efficiency: float = 1e-6,
     count_only: bool = False,
     verbosity: int = 0,
-    max_N_out: "int | None" = None) -> "np.ndarray | tuple[int, int]":
+    max_N_out: "int | None" = None,
+    B_start: "int | None" = None) -> "np.ndarray | tuple[int, int]":
     """
     Generate (optionally primitive) lattice points in
         {x in Z^dim : H @ x >= rhs}
@@ -80,6 +140,9 @@ def enum_lattice_points(
         points, then materializing them at the end). If, in contrast, an int is
         given, that value is used as the buffer for every trial box (faster, but
         dangerous with memory).
+    B_start : int or None, optional
+        Box half-width to start the search from. Defaults to an LP lower bound
+        (see `_lp_min_box`).
 
     Returns
     -------
@@ -112,6 +175,24 @@ def enum_lattice_points(
     # Smallest B such that an unconstrained box (N_hyps=0) could contain
     # min_N_pts points: (2B+1)^dim >= min_N_pts => B >= (min_N_pts^{1/dim}-1)/2
     B = max(1, int((min_N_pts**(1.0/dim) - 1) / 2))
+
+    # start from the LP lower bound; without it narrow cones crawl up in +1/+3
+    # steps, paying a branch-and-bound per step (see _lp_min_box)
+    if B_start is None:
+        B_lp, lp_infeasible = _lp_min_box(H, rhs)
+        if lp_infeasible:
+            if verbosity >= 1:
+                print("LP relaxation infeasible: no lattice points exist.",
+                      flush=True)
+            if count_only:
+                return B, 0
+            return np.empty((0, dim), dtype=np.int32)
+        if B_lp is not None:
+            B = max(B, int(np.ceil(B_lp - _LP_TOL)))
+            if verbosity >= 1:
+                print(f"LP lower bound on box: starting at B={B}", flush=True)
+    else:
+        B = max(1, int(B_start))
 
     # Node budget: minimum nodes to find min_N_pts points with N_hyps=0
     # (no hyperplane constraints), N_nodes_dense = sum_{k=0}^{dim} min_N_pts^{k/dim}.
@@ -147,7 +228,7 @@ def enum_lattice_points(
             primitive=primitive,
         )
 
-        # N: how many points this box has -- the count directly on a count-only
+        # N: how many points this box has; the count directly on a count-only
         # dry run, or the length of the materialized array otherwise.
         N = _res if dry_running else len(_res)
         if verbosity >= 1:
@@ -210,7 +291,14 @@ def enum_lattice_points(
         # log(N1)-log(N0) = m(log(B1)-log(B0))
         # (ensure there are at least 3x data points. Otherwise, fit empirically
         #  untrustworthy)
-        if len(Bs_fit) > 2:  # require >=3 points before trusting the fit
+        if N == 0:
+            # An empty box carries no information for the fit below (which only
+            # records N>0), so the +1/+3 crawl would repeat a full search per
+            # step with nothing to show for it. Grow geometrically instead.
+            # Overshooting is safe: every point in the final box is returned, so
+            # a too-large box costs time, never correctness.
+            B = max(B + 1, int(np.ceil(_EMPTY_GROWTH * B)))
+        elif len(Bs_fit) > 2:  # require >=3 points before trusting the fit
             m = (Npts_fit[-1]-Npts_fit[-2])/(Bs_fit[-1]-Bs_fit[-2])
             # Inflate slope to underestimate the next B
             m *= magicA
@@ -265,7 +353,7 @@ def min_B_for(H, rhs, min_N_pts, primitive, max_B=10_000, verbosity=0):
     Parameters
     ----------
     H, rhs, min_N_pts, primitive, max_B, verbosity
-        See :func:`enum_lattice_points` -- identical meaning.
+        See :func:`enum_lattice_points` for identical meaning.
 
     Returns
     -------
