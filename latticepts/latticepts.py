@@ -81,7 +81,7 @@ def _lp_min_box(H: np.ndarray, rhs: np.ndarray) -> "tuple[float | None, bool]":
     try:
         res = linprog(c, A_ub=A_ub, b_ub=b_ub,
                       bounds=[(None, None)]*dim + [(0, None)], method="highs")
-    except Exception:
+    except ValueError:      # linprog validates its input and raises ValueError
         return None, False
 
     if res.status == 2:      # provably infeasible
