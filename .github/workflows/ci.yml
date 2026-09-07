@@ -64,6 +64,8 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install ruff
-        run: pip install ruff
+        # pinned: an unpinned install changes the default rule set between runs,
+        # so CI can fail on a commit that touched nothing
+        run: pip install ruff==0.16.6
       - name: Ruff check
         run: ruff check latticepts/
