@@ -2,7 +2,6 @@
 requires = [
     "setuptools>=64",
     "cython",
-    "numpy",
 ]
 build-backend = "setuptools.build_meta"
 
